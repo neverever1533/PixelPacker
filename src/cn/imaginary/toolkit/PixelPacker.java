@@ -145,76 +145,19 @@ public class PixelPacker {
     private JsonObject toJsonObject(Properties properties) {
         JsonObject jsonObject = null;
         if (null != properties) {
-            jsonObj                x += x_;
-                y += y_;
-                graphics2D.drawImage(image, x, y, null);
-            }
-        }
-    }
-
-    public Rectangle getBounds(BufferedImage[] array, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight) {
-        if (null != array) {
-            int[] bounds = getBounds(array);
-            int w_max = bounds[1];
-            int h_max = bounds[3];
-            if (width <= 0) {
-                width = w_max;
-            }
-            if (height <= 0) {
-                height = h_max;
-            }
-            int w = (width + lineWidth) * lineSize;
-            int h = (height + rowHeight) * rowSize;
-            return new Rectangle(0, 0, w, h);
-        }
-        return null;
-    }
-
-    public int[] getBounds(BufferedImage[] array) {
-        if (null != array) {
-            int w_min = -1;
-            int w_max = -1;
-            int h_min = -1;
-            int h_max = -1;
-            for (int i = 0; i < array.length; i++) {
-                BufferedImage image = array[i];
-                if (null != image) {
-                    int w = image.getWidth();
-                    int h = image.getHeight();
-                    if (w_min == -1) {
-                        w_min = w;
-                    }
-                    if (w_max == -1) {
-                        w_max = w;
-                    }
-                    if (h_min == -1) {
-                        h_min = h;
-                    }
-                    if (h_max == -1) {
-                        h_max = h;
-                    }
-                    if (w < w_min) {
-                        w_min = w;
-                    }
-                    if (w > w_max) {
-                        w_max = w;
-                    }
-                    if (h < h_min) {
-                        h_min = h;
-                    }
-                    if (h > h_max) {
-                        h_max = h;
-                    }
+            jsonObject = new JsonObject();
+            Set<Object> kset = properties.keySet();
+            for (Iterator<Object> iterator = kset.iterator(); iterator.hasNext(); ) {
+                Object key = iterator.next();
+                Object value = properties.get(key);
+                if (value instanceof Properties) {
+                    jsonObject.add(key.toString(), toJsonObject((Properties) value));
+                } else {
+                    jsonObject.add(key.toString(), value);
                 }
             }
-            int[] arr = new int[4];
-            arr[0] = w_min;
-            arr[1] = w_max;
-            arr[2] = h_min;
-            arr[3] = h_max;
-            return arr;
         }
-        return null;
+        return jsonObject;
     }
 
     private BufferedImage read(File file) {
@@ -237,7 +180,7 @@ public class PixelPacker {
         if (null != image && null != file) {
 //            System.out.println("file:" + file.getAbsolutePath());
             try {
-                ImageIO.write(image, suffix_Png, file);
+                ImageIO.write(image, tag_png, file);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -273,8 +216,10 @@ public class PixelPacker {
         return newFile;
     }
 
-    public void pack(File file) {
-        pack(file, 0, 0, -1, -1, -1, -1, 0, 0);
+    public void pack(String filePath, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight) {
+        if (null != filePath) {
+            pack(new File(filePath), x, y, width, height, lineSize, rowSize, lineWidth, rowHeight);
+        }
     }
 
     public void pack(File file, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight) {
@@ -287,15 +232,15 @@ public class PixelPacker {
             }
             if (null != dirFile) {
                 BufferedImage image = pack(dirFile.listFiles(), x, y, width, height, lineSize, rowSize, lineWidth, rowHeight);
-                String path = dirFile.getAbsolutePath() + suffix_Pack + x + y + width + height + lineSize + rowSize + lineWidth + rowHeight + ".png";
+                String info = suffix_Pack + x + y + width + height + lineSize + rowSize + lineWidth + rowHeight;
+                String path = dirFile.getAbsolutePath() + info + suffix_Png;
                 File packFile = new File(path);
                 write(image, packFile);
+                String fname = dirFile.getName() + info + suffix_Json;
+                File propFile = newFile(packFile, fname, false);
+                writeProperties(pixelSheet.getPackProperties(), propFile);
             }
         }
-    }
-
-    public BufferedImage pack(File[] array) {
-        return pack(array, 0, 0, 0, 0, -1, -1, 0, 0);
     }
 
     public BufferedImage pack(File[] array, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight) {
@@ -307,121 +252,234 @@ public class PixelPacker {
                     arrayList.add(image);
                 }
             }
-            return pack(arrayList, x, y, width, height, lineSize, rowSize, lineWidth, rowHeight);
+            return pixelSheet.pack(arrayList, x, y, width, height, lineSize, rowSize, lineWidth, rowHeight);
         }
         return null;
     }
 
-    public void pack(String filePath) {
-        pack(filePath, 0, 0, 0, 0, -1, -1, 0, 0);
-    }
-
-    public void pack(String filePath, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight) {
+    public void packLineKeepSize(String filePath) {
         if (null != filePath) {
-            pack(new File(filePath), x, y, width, height, lineSize, rowSize, lineWidth, rowHeight);
+            packLineKeepSize(new File(filePath));
         }
     }
 
-    public BufferedImage pack(ArrayList<BufferedImage> arrayList) {
-        return pack(arrayList, 0, 0, 0, 0, -1, -1, 0, 0);
-    }
-
-    public BufferedImage pack(BufferedImage[] array) {
-        return pack(array, 0, 0, 0, 0, -1, -1, 0, 0);
-    }
-
-    public BufferedImage pack(ArrayList<BufferedImage> arrayList, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight) {
-        if (null != arrayList) {
-            BufferedImage[] array = new BufferedImage[arrayList.size()];
-            arrayList.toArray(array);
-            return pack(array, x, y, width, height, lineSize, rowSize, lineWidth, rowHeight);
+    public void packLineKeepSize(String filePath, int x, int y, int lineWidth, int rowHeight) {
+        if (null != filePath) {
+            packLineKeepSize(new File(filePath), x, y, lineWidth, rowHeight);
         }
-        return null;
     }
 
-    public BufferedImage pack(BufferedImage[] array, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight) {
-        return drawImage(array, x, y, width, height, lineSize, rowSize, lineWidth, rowHeight);
+    public void packLineKeepSize(File file) {
+        packLineKeepSize(file, 0, 0, 0, 0);
     }
 
-    public void packPolygon(File file) {
+    public void packLineKeepSize(File file, int x, int y, int lineWidth, int rowHeight) {
+        pack(file, x, y, Width_KeepSize, Height_KeepSize, Line_MaxSize, 1, lineWidth, rowHeight);
     }
 
-    public void packPolygon(File[] array) {
+    public BufferedImage packLineKeepSize(File[] array) {
+        return packLineKeepSize(array, 0, 0, 0, 0);
+    }
+
+    public BufferedImage packLineKeepSize(File[] array, int x, int y, int lineWidth, int rowHeight) {
+        return pack(array, x, y, Width_KeepSize, Height_KeepSize, Line_MaxSize, 1, lineWidth, rowHeight);
+    }
+
+    public void packLineMaxSize(String filePath) {
+        if (null != filePath) {
+            packLineMaxSize(new File(filePath));
+        }
+    }
+
+    public void packLineMaxSize(String filePath, int x, int y, int lineWidth, int rowHeight) {
+        if (null != filePath) {
+            packLineMaxSize(new File(filePath), x, y, lineWidth, rowHeight);
+        }
+    }
+
+    public void packLineMaxSize(File file) {
+        packLineMaxSize(file, 0, 0, 0, 0);
+    }
+
+    public void packLineMaxSize(File file, int x, int y, int lineWidth, int rowHeight) {
+        pack(file, x, y, Width_MaxSize, Height_MaxSize, Line_MaxSize, 1, lineWidth, rowHeight);
+    }
+
+    public BufferedImage packLineMaxSize(File[] array) {
+        return packLineMaxSize(array, 0, 0, 0, 0);
+    }
+
+    public BufferedImage packLineMaxSize(File[] array, int x, int y, int lineWidth, int rowHeight) {
+        return pack(array, x, y, Width_MaxSize, Height_MaxSize, Line_MaxSize, 1, lineWidth, rowHeight);
+    }
+
+    public void packRowKeepSize(String filePath) {
+        if (null != filePath) {
+            packRowKeepSize(new File(filePath));
+        }
+    }
+
+    public void packRowKeepSize(String filePath, int x, int y, int lineWidth, int rowHeight) {
+        if (null != filePath) {
+            packRowKeepSize(new File(filePath), x, y, lineWidth, rowHeight);
+        }
+    }
+
+    public void packRowKeepSize(File file) {
+        packRowKeepSize(file, 0, 0, 0, 0);
+    }
+
+    public void packRowKeepSize(File file, int x, int y, int lineWidth, int rowHeight) {
+        pack(file, x, y, Width_KeepSize, Height_KeepSize, 1, Row_MaxSize, lineWidth, rowHeight);
+    }
+
+    public BufferedImage packRowKeepSize(File[] array) {
+        return packRowKeepSize(array, 0, 0, 0, 0);
+    }
+
+    public BufferedImage packRowKeepSize(File[] array, int x, int y, int lineWidth, int rowHeight) {
+        return pack(array, x, y, Width_KeepSize, Height_KeepSize, 1, Row_MaxSize, lineWidth, rowHeight);
+    }
+
+    public void packRowMaxSize(String filePath) {
+        if (null != filePath) {
+            packRowMaxSize(new File(filePath));
+        }
+    }
+
+    public void packRowMaxSize(String filePath, int x, int y, int lineWidth, int rowHeight) {
+        if (null != filePath) {
+            packRowMaxSize(new File(filePath), x, y, lineWidth, rowHeight);
+        }
+    }
+
+    public void packRowMaxSize(File file) {
+        packRowMaxSize(file, 0, 0, 0, 0);
+    }
+
+    public void packRowMaxSize(File file, int x, int y, int lineWidth, int rowHeight) {
+        pack(file, x, y, Width_MaxSize, Height_MaxSize, 1, Row_MaxSize, lineWidth, rowHeight);
+    }
+
+    public BufferedImage packRowMaxSize(File[] array) {
+        return packRowMaxSize(array, 0, 0, 0, 0);
+    }
+
+    public BufferedImage packRowMaxSize(File[] array, int x, int y, int lineWidth, int rowHeight) {
+        return pack(array, x, y, Width_MaxSize, Height_MaxSize, 1, Row_MaxSize, lineWidth, rowHeight);
     }
 
     public void packPolygon(String filePath) {
+        if (null != filePath) {
+            packPolygon(new File(filePath));
+        }
     }
 
-    public BufferedImage packPolygon(ArrayList<BufferedImage> arrayList) {
+    public void packPolygon(File file) {
+        if (null != file) {
+            File dirFile;
+            if (file.isFile()) {
+                dirFile = file.getParentFile();
+            } else {
+                dirFile = file;
+            }
+            if (null != dirFile) {
+                BufferedImage image = packPolygon(dirFile.listFiles());
+                String info = suffix_Pack + tag_polygon;
+                String path = dirFile.getAbsolutePath() + info + suffix_Png;
+                File packFile = new File(path);
+                write(image, packFile);
+//                String fname = dirFile.getName() + suffix_Pack_Properties + suffix_Xml;
+                String fname = dirFile.getName() + info + suffix_Json;
+                File propFile = newFile(packFile, fname, false);
+                writeProperties(pixelSheet.getPackProperties(), propFile);
+            }
+        }
+    }
+
+    public BufferedImage packPolygon(File[] array) {
+        if (null != array) {
+            ArrayList<BufferedImage> arrayList = new ArrayList<>();
+            for (int i = 0; i < array.length; i++) {
+                BufferedImage image = read(array[i]);
+                if (null != image) {
+                    arrayList.add(image);
+                }
+            }
+            return pixelSheet.packPolygon(arrayList);
+        }
         return null;
-    }
-
-    public BufferedImage packPolygon(BufferedImage[] array) {
-        return null;
-    }
-
-    public void unpack(File file) {
-    }
-
-    public void unpack(File[] array) {
     }
 
     public void unpack(String filePath) {
     }
 
-    public ArrayList<BufferedImage> unpack(BufferedImage image) {
-        return null;
+    public void unpack(String filePath, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight) {
+    }
+
+    public void unpack(File file) {
     }
 
     public void unpack(File file, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight) {
     }
 
+    public void unpack(File[] array) {
+    }
+
     public void unpack(File[] array, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight) {
     }
 
-    public void unpack(String filePath, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight) {
+    private void unpack(File file, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight, boolean isTrim) {
     }
 
-    public ArrayList<BufferedImage> unpack(BufferedImage image, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight) {
-        return null;
+    public void unpackTrim(File file) {
     }
 
-    public void unpackPolygon(File file) {
+    public void unpackTrim(File file, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight) {
     }
 
-    public void unpackPolygon(File[] array) {
+    public void unpackTrim(File[] array) {
+    }
+
+    public void unpackTrim(File[] array, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight) {
     }
 
     public void unpackPolygon(String filePath) {
     }
 
-    public ArrayList<BufferedImage> unpackPolygon(BufferedImage image) {
-        return null;
+    public void unpackPolygon(String filePath, int width, int height) {
+    }
+
+    public void unpackPolygon(File file) {
     }
 
     public void unpackPolygon(File file, int width, int height) {
     }
 
+    public void unpackPolygon(File[] array) {
+    }
+
     public void unpackPolygon(File[] array, int width, int height) {
     }
 
-    public void unpackPolygon(String filePath, int width, int height) {
-    }
-
-    public ArrayList<BufferedImage> unpackPolygon(BufferedImage image, int width, int height) {
-        return null;
-    }
-
-    public void unpackPolygonTrim(File file) {
-    }
-
-    public void unpackPolygonTrim(File[] array) {
+    private void unpackPolygon(File file, int width, int height, boolean isTrim) {
     }
 
     public void unpackPolygonTrim(String filePath) {
     }
 
-    public ArrayList<BufferedImage> unpackPolygonTrim(BufferedImage image) {
-        return null;
+    private void unpackPolygonTrim(String filePath, int width, int height) {
+    }
+
+    public void unpackPolygonTrim(File file) {
+    }
+
+    private void unpackPolygonTrim(File file, int width, int height) {
+    }
+
+    public void unpackPolygonTrim(File[] array) {
+    }
+
+    private void unpackPolygonTrim(File[] array, int width, int height) {
     }
 }
