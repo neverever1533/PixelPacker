@@ -154,7 +154,26 @@ public class PixelSheet {
         return null;
     }
 
-    private Dimension getBounds(BufferedImage[] array, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight) {
+    public Dimension getSize(BufferedImage[] array) {
+        if (null != array) {
+            int[] bounds = getBounds(array);
+            if (null != bounds) {
+                int w_max = bounds[1];
+                int h_max = bounds[3];
+                double size_sqrt = Math.sqrt(array.length);
+                int size = (int) size_sqrt;
+                if (size != size_sqrt) {
+                    size += 1;
+                }
+                int width = w_max * size;
+                int height = h_max * size;
+                return new Dimension(width, height);
+            }
+        }
+        return null;
+    }
+
+    private Dimension getSize(BufferedImage[] array, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight) {
         if (null != array) {
             int[] bounds = getBounds(array);
             int width_max = bounds[1];
@@ -243,9 +262,9 @@ public class PixelSheet {
                     rowSize = array.length / lineSize;
                 }
             }
-            Dimension bounds = getBounds(array, width, height, lineSize, rowSize, lineWidth, rowHeight);
+            Dimension bounds = getSize(array, width, height, lineSize, rowSize, lineWidth, rowHeight);
             BufferedImage image = new BufferedImage(bounds.width, bounds.height, BufferedImage.TYPE_INT_ARGB);
-            pack(image, array, width, height, lineSize, rowSize, lineWidth, rowHeight, isTrim);
+            pack(image, array, width, height, lineSize, rowSize, lineWidth, rowHeight);
             if (x != 0 || y != 0) {
                 updatePackProperties(getPackProperties(), x, y);
                 return drawImage(image, x, y);
@@ -267,8 +286,8 @@ public class PixelSheet {
         return null;
     }
 
-    private void pack(BufferedImage image, BufferedImage[] array, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight, boolean isTrim) {
-        if (null != image && null != array) {
+    private void pack(BufferedImage root, BufferedImage[] array, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight) {
+        if (null != root && null != array) {
             int[] bounds = getBounds(array);
             int w_max = bounds[1];
             int h_max = bounds[3];
@@ -285,19 +304,19 @@ public class PixelSheet {
                 h_max = height;
             }
             Properties properties = new Properties();
-            Graphics2D graphics2D = image.createGraphics();
+            Graphics2D graphics2D = root.createGraphics();
             for (int i = 0; i < array.length; i++) {
-                BufferedImage img = array[i];
-                if (null != img) {
+                BufferedImage image = array[i];
+                if (null != image) {
                     int w;
                     int h;
                     if (width == 0) {
-                        w = img.getWidth();
+                        w = image.getWidth();
                     } else {
                         w = width;
                     }
                     if (height == 0) {
-                        h = img.getHeight();
+                        h = image.getHeight();
                     } else {
                         h = height;
                     }
@@ -309,7 +328,7 @@ public class PixelSheet {
                     int x = line * (w_max + lineWidth);
                     int y = row * (h_max + rowHeight);
                     Properties prop = new Properties();
-                    drawImage(graphics2D, img, x, y, w, h, prop);
+                    drawImage(graphics2D, image, x, y, w, h, prop);
                     properties.put(i, prop);
                 }
             }
@@ -336,51 +355,110 @@ public class PixelSheet {
         }
     }
 
-    public BufferedImage packPolygon(BufferedImage[] array, boolean isTrim) {
-        if (null != array) {
-            int[] bounds = getBounds(array);
+    public BufferedImage pack(BufferedImage[] array, Properties properties, boolean isTrim) {
+        if (null != array && null != properties) {
             updateImage(array, isTrim);
-            int w_min = bounds[0];
-            int w_max = bounds[1];
-            int h_min = bounds[2];
-            int h_max = bounds[3];
-            double size_sqrt = Math.sqrt(array.length);
-            int size = (int) size_sqrt;
-            if (size != size_sqrt) {
-                size += 1;
-            }
-            int width = w_max * size;
-            int height = h_max * size;
-            BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-            packPolygon(image, array);
-            int[] rgb_bounds = getBounds(image);
-            if (null != rgb_bounds) {
-                int x_max = rgb_bounds[2] + rgb_bounds[0];
-                int y_max = rgb_bounds[3] + rgb_bounds[1];
-                int aw = image.getWidth() - x_max;
-                int ah = image.getHeight() - y_max;
-                if (aw != 0 || ah != 0) {
-                    int x = x_max;
-                    x += aw % w_min;
-                    int y = y_max;
-                    y += ah % h_min;
-                    image = image.getSubimage(0, 0, x, y);
+            Dimension dimension = getSize(array);
+            if (null != dimension) {
+                BufferedImage root = new BufferedImage(dimension.width, dimension.height, BufferedImage.TYPE_INT_ARGB);
+                Graphics2D graphics2D = root.createGraphics();
+                Object key_ = properties.get("x");
+                if (null == key_) {
+                    Set<Object> kset = properties.keySet();
+                    int[] bounds = getBounds(array);
+                    int w_min = bounds[0];
+                    int h_min = bounds[2];
+                    for (Iterator iterator = kset.iterator(); iterator.hasNext(); ) {
+                        Object key = iterator.next();
+                        Object value = properties.get(key);
+                        if (value instanceof Properties) {
+                            Properties prop = (Properties) value;
+                            int index = -1;
+                            if (key instanceof Integer) {
+                                index = (int) key;
+                            } else if (key instanceof String) {
+                                index = Integer.parseInt((String) key);
+                            }
+                            if (index != -1) {
+                                if (index < array.length) {
+                                    BufferedImage image = array[index];
+                                    if (null != image) {
+                                        int x = (int) prop.get(tag_x);
+                                        int y = (int) prop.get(tag_y);
+                                        int width = (int) prop.get(tag_width);
+                                        int height = (int) prop.get(tag_height);
+                                        if (w_min < width) {
+                                            w_min = width;
+                                        }
+                                        if (h_min < height) {
+                                            h_min = height;
+                                        }
+                                        drawImage(graphics2D, image, x, y, width, height, null);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    graphics2D.dispose();
+                    return getSubImage(root, w_min, h_min);
                 }
             }
-            return image;
         }
         return null;
     }
 
-    private void packPolygon(BufferedImage image, BufferedImage[] array) {
-        if (null != image && null != array) {
-            boolean[][] records = new boolean[image.getWidth()][image.getHeight()];
+    public BufferedImage packPolygon(BufferedImage[] array, boolean isTrim) {
+        if (null != array) {
+            updateImage(array, isTrim);
+            Dimension dimension = getSize(array);
+            BufferedImage image = new BufferedImage(dimension.width, dimension.height, BufferedImage.TYPE_INT_ARGB);
+            packPolygon(image, array);
+            return getSubImage(image, array);
+        }
+        return null;
+    }
+
+    private BufferedImage getSubImage(BufferedImage root, BufferedImage[] array) {
+        if (null != array) {
+            int[] bounds = getBounds(array);
+            return getSubImage(root, bounds[0], bounds[2]);
+        }
+        return null;
+    }
+
+    private BufferedImage getSubImage(BufferedImage root, int width, int height) {
+        if (null != root) {
+            if (width < 0 || width >= root.getWidth() || height < 0 || height >= root.getHeight() || (width == 0 && height == 0)) {
+                return root;
+            }
+            int[] bounds = getBounds(root);
+            if (null != bounds) {
+                int x_max = bounds[2] + bounds[0];
+                int y_max = bounds[3] + bounds[1];
+                int aw = root.getWidth() - x_max;
+                int ah = root.getHeight() - y_max;
+                if (aw != 0 || ah != 0) {
+                    int x = x_max;
+                    x += aw % width;
+                    int y = y_max;
+                    y += ah % height;
+                    root = root.getSubimage(0, 0, x, y);
+                }
+            }
+            return root;
+        }
+        return null;
+    }
+
+    private void packPolygon(BufferedImage root, BufferedImage[] array) {
+        if (null != root && null != array) {
+            boolean[][] records = new boolean[root.getWidth()][root.getHeight()];
             Properties properties = new Properties();
             for (int i = 0; i < array.length; i++) {
-                BufferedImage img = array[i];
-                if (null != img) {
+                BufferedImage image = array[i];
+                if (null != image) {
                     Properties prop = new Properties();
-                    packPolygon(image, img, records, prop);
+                    packPolygon(root, image, records, prop);
                     properties.put(i, prop);
                 }
             }
@@ -443,15 +521,15 @@ public class PixelSheet {
         }
     }
 
-    public BufferedImage unpack(BufferedImage root, Properties properties, boolean isTrim) {
-        if (null != root && null != properties) {
+    public BufferedImage unpack(BufferedImage image, Properties properties, boolean isTrim) {
+        if (null != image && null != properties) {
             Object key_ = properties.get(tag_x);
             if (null != key_) {
                 int x = (int) properties.get(tag_x);
                 int y = (int) properties.get(tag_y);
                 int width = (int) properties.get(tag_width);
                 int height = (int) properties.get(tag_height);
-                return unpack(root, x, y, width, height, isTrim);
+                return unpack(image, x, y, width, height, isTrim);
             }
         }
         return null;
@@ -478,14 +556,14 @@ public class PixelSheet {
         return null;
     }
 
-    public ArrayList<BufferedImage> unpack(BufferedImage image, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight, boolean isTrim) {
-        if (null != image) {
-            int w = image.getWidth();
-            int h = image.getHeight();
+    public ArrayList<BufferedImage> unpack(BufferedImage root, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight, boolean isTrim) {
+        if (null != root) {
+            int w = root.getWidth();
+            int h = root.getHeight();
             if (x > 0 || y > 0) {
                 w -= x;
                 h -= y;
-                image = image.getSubimage(x, y, w, h);
+                root = root.getSubimage(x, y, w, h);
             }
             int w_;
             int h_;
@@ -551,33 +629,33 @@ public class PixelSheet {
                 for (int j = 0; j < rowSize; j++) {
                     int x_ = i * (width + lineWidth);
                     int y_ = j * (height + rowHeight);
-                    BufferedImage img = image.getSubimage(x_, y_, w_, h_);
+                    BufferedImage image = root.getSubimage(x_, y_, w_, h_);
                     if (lineWidth > 0 || rowHeight > 0) {
-                        img = img.getSubimage(x_, y_, width, height);
+                        image = image.getSubimage(x_, y_, width, height);
                     }
                     if (isTrim) {
-                        if (null != img) {
-                            int[] bounds = getBounds(img);
+                        if (null != image) {
+                            int[] bounds = getBounds(image);
                             if (null != bounds) {
                                 int x_trim = bounds[0];
                                 int y_trim = bounds[1];
                                 int w_trim = bounds[2];
                                 int h_trim = bounds[3];
                                 if (x_trim > 0 && y_trim > 0 && w_trim > 0 && h_trim > 0) {
-                                    img = img.getSubimage(x_trim, y_trim, w_trim, h_trim);
+                                    image = image.getSubimage(x_trim, y_trim, w_trim, h_trim);
                                     x_ += x_trim;
                                     y_ += y_trim;
                                 }
                             }
                         }
                     }
-                    if (null != img) {
-                        arrayList.add(img);
+                    if (null != image) {
+                        arrayList.add(image);
                         Properties prop = new Properties();
                         prop.put(tag_x, x_);
                         prop.put(tag_y, y_);
-                        prop.put(tag_width, img.getWidth());
-                        prop.put(tag_height, img.getHeight());
+                        prop.put(tag_width, image.getWidth());
+                        prop.put(tag_height, image.getHeight());
                         properties.put(index, prop);
                         index++;
                     }
