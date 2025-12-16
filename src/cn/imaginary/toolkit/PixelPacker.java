@@ -18,12 +18,8 @@ import java.util.Set;
 import javax.imageio.ImageIO;
 
 public class PixelPacker {
-    public static int Line_MaxSize = -1;
-    public static int Row_MaxSize = -1;
-    public static int Width_KeepSize = 0;
-    public static int Height_KeepSize = 0;
-    public static int Width_MaxSize = -1;
-    public static int Height_MaxSize = -1;
+    public static int MaxSize = -1;
+    public static int KeepSize = 0;
 
     private int type_Prefix = -1;
     private int type_Suffix = 1;
@@ -342,7 +338,7 @@ public class PixelPacker {
     }
 
     public void packKeepSize(File file, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {
-        pack(file, x, y, Width_KeepSize, Height_KeepSize, Line_MaxSize, Row_MaxSize, lineWidth, rowHeight, isTrim);
+        pack(file, x, y, KeepSize, KeepSize, MaxSize, MaxSize, lineWidth, rowHeight, isTrim);
     }
 
     public void packMaxSize(File file, boolean isTrim) {
@@ -350,7 +346,7 @@ public class PixelPacker {
     }
 
     public void packMaxSize(File file, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {
-        pack(file, x, y, Width_MaxSize, Height_MaxSize, Line_MaxSize, Row_MaxSize, lineWidth, rowHeight, isTrim);
+        pack(file, x, y, MaxSize, MaxSize, MaxSize, MaxSize, lineWidth, rowHeight, isTrim);
     }
 
     public void packLineKeepSize(File file, boolean isTrim) {
@@ -358,7 +354,7 @@ public class PixelPacker {
     }
 
     public void packLineKeepSize(File file, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {
-        pack(file, x, y, Width_KeepSize, Height_KeepSize, Line_MaxSize, 1, lineWidth, rowHeight, isTrim);
+        pack(file, x, y, KeepSize, KeepSize, MaxSize, 1, lineWidth, rowHeight, isTrim);
     }
 
     public void packLineMaxSize(File file, boolean isTrim) {
@@ -366,7 +362,7 @@ public class PixelPacker {
     }
 
     public void packLineMaxSize(File file, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {
-        pack(file, x, y, Width_MaxSize, Height_MaxSize, Line_MaxSize, 1, lineWidth, rowHeight, isTrim);
+        pack(file, x, y, MaxSize, MaxSize, MaxSize, 1, lineWidth, rowHeight, isTrim);
     }
 
     public void packRowKeepSize(File file, boolean isTrim) {
@@ -374,7 +370,7 @@ public class PixelPacker {
     }
 
     public void packRowKeepSize(File file, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {
-        pack(file, x, y, Width_KeepSize, Height_KeepSize, 1, Row_MaxSize, lineWidth, rowHeight, isTrim);
+        pack(file, x, y, KeepSize, KeepSize, 1, MaxSize, lineWidth, rowHeight, isTrim);
     }
 
     public void packRowMaxSize(File file, boolean isTrim) {
@@ -382,7 +378,7 @@ public class PixelPacker {
     }
 
     public void packRowMaxSize(File file, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {
-        pack(file, x, y, Width_MaxSize, Height_MaxSize, 1, Row_MaxSize, lineWidth, rowHeight, isTrim);
+        pack(file, x, y, MaxSize, MaxSize, 1, MaxSize, lineWidth, rowHeight, isTrim);
     }
 
     public void packPolygon(File file, boolean isTrim) {
@@ -519,7 +515,7 @@ public class PixelPacker {
     }
 
     public void unpackPolygon(File file, boolean isTrim) {
-        unpackPolygon(file, Width_KeepSize, Height_KeepSize, isTrim);
+        unpackPolygon(file, KeepSize, KeepSize, isTrim);
     }
 
     public void unpackPolygon(File file, int width, int height, boolean isTrim) {
