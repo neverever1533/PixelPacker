@@ -64,6 +64,45 @@ Pack and Unpack images for the Sprite sheets.
 
 keep size是指保持原有尺寸，max size是指所有图片文件最大尺寸，trim则是清除透明边框后最大有效像素尺寸，line size小于0时默认打包为1行，row size同样小于0时默认按图片数打包正方形图集。
 
+### 举例：
+1. keep size :
+
+```java
+packKeepSize(file, false);
+```
+
+![image](https://github.com/neverever1533/PixelPacker/blob/main/sheets_pack_keep_3x3.png)
+
+2. keep size + trim :
+
+```java
+packKeepSize(file, true);
+```
+
+![image](https://github.com/neverever1533/PixelPacker/blob/main/sheets_pack_keep_3x3_trim.png)
+
+3. max size :
+
+```java
+packMaxSize(file, false);
+```
+
+![image](https://github.com/neverever1533/PixelPacker/blob/main/sheets_pack_max_3x3.png)
+
+4. max size + trim :
+
+```java
+packMaxSize(file, true);
+```
+
+![image](https://github.com/neverever1533/PixelPacker/blob/main/sheets_pack_max_3x3_trim.png)
+
+5. pack polygon :
+```java
+packPolygon(file, false);
+```
+![image](https://github.com/neverever1533/PixelPacker/blob/main/sheets_pack_polygon.png)
+
 
 <a id="method"></a>
 
