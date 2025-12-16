@@ -153,7 +153,7 @@ public void packMaxSize(File file, boolean isTrim) {}
 public void packMaxSize(File file, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {}
 ```
 
-将多个图片按照参数打包为指定行数和列数的图集。
+扫描文件夹（若选择文件，则扫描文件所在文件夹，pack的所有方法类同），将多个图片按照参数打包为指定行数和列数的图集。
 
 
 <a id="pack-line"></a>
@@ -178,7 +178,7 @@ public void packLineMaxSize(File file, boolean isTrim) {}
 public void packLineMaxSize(File file, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {}
 ```
 
-默认打包为一行图集。
+扫描文件夹，默认打包为一行图集。
 
 
 <a id="pack-row"></a>
@@ -203,7 +203,7 @@ public void packRowMaxSize(File file, boolean isTrim) {}
 public void packRowMaxSize(File file, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {}
 ```
 
-默认打包为一列图集。
+扫描文件夹，默认打包为一列图集。
 
 
 <a id="pack-polygon"></a>
@@ -215,7 +215,7 @@ public void packRowMaxSize(File file, int x, int y, int lineWidth, int rowHeight
 public void packPolygon(File file, boolean isTrim) {}
 ```
 
-不按照坐标并以图片次序打包为图集。
+扫描文件夹，不按照坐标并以图片次序打包为图集。
 
 
 <a id="pack-properties"></a>
@@ -231,7 +231,7 @@ public void pack(File imageFile, File propFile, boolean isTrim) {}
 public void pack(File imageFile, Properties properties, boolean isTrim) {}
 ```
 
-按照配置信息打包图片为图集。
+扫描文件夹（若配置文件内有路径，第一项可设为null），按照配置信息打包图片为图集。
 
 <p align="right">(<a href="#pack-all">回到打包 （back to pack）</a>)</p>
 
@@ -251,7 +251,7 @@ public void unpack(File file, int x, int y, int width, int height, boolean isTri
 public void unpack(File file, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight, boolean isTrim) {}
 ```
 
-按照坐标解包图片中的所有，或指定行数和列数的像素块（指定宽高），然后分割并存储为多个图片。
+读取图片文件，按照坐标解包图片中的所有，或指定行数和列数的像素块（指定宽高），然后分割并存储为多个图片。
 
 
 <a id="unpack-polygon"></a>
@@ -267,7 +267,7 @@ public void unpackPolygon(File file, boolean isTrim) {}
 public void unpackPolygon(File file, int width, int height, boolean isTrim) {}
 ```
 
-解包图片中的非透明部分的像素块，然后分割并存储为多个图片。（已限制使用）
+读取图片文件，解包图片中的非透明部分的像素块，然后分割并存储为多个图片。（已限制使用）
 
 
 <a id="unpack-properties"></a>
@@ -283,7 +283,7 @@ public void unpack(File imageFile, File propFile, boolean isTrim) {}
 public void unpack(File imageFile, Properties properties, boolean isTrim) {}
 ```
 
-按照配置信息解包图片，然后分割并存储为多个图片。
+读取图片文件，按照配置信息解包图片，然后分割并存储为多个图片。
 
 <p align="right">(<a href="#unpack-all">回到解包 （back to unpack）</a>)</p>
 
