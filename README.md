@@ -69,7 +69,7 @@ keep size是指保持原有尺寸，max size是指所有图片文件最大尺寸
 public static int Keep_Size = 0;
 public static int Max_Size = -1;
 ```
-1. keep size :
+1. keep size + max size :
 
 ```java
 pack(file, 0, 0, 0, 0, -1, -1, 0, 0, false);
@@ -77,7 +77,7 @@ pack(file, 0, 0, 0, 0, -1, -1, 0, 0, false);
 
 ![image](https://github.com/neverever1533/PixelPacker/blob/main/sheets_pack_keep_3x3.png)
 
-2. keep size + trim :
+2. keep size + max size + trim :
 
 ```java
 pack(file, 0, 0, 0, 0, -1, -1, 0, 0, true);
@@ -85,7 +85,7 @@ pack(file, 0, 0, 0, 0, -1, -1, 0, 0, true);
 
 ![image](https://github.com/neverever1533/PixelPacker/blob/main/sheets_pack_keep_3x3_trim.png)
 
-3. max size :
+3. max size + max size :
 
 ```java
 packMaxSize(file, false);
@@ -95,7 +95,7 @@ pack(file, 0, 0, -1, -1, -1, -1, 0, 0, false);
 
 ![image](https://github.com/neverever1533/PixelPacker/blob/main/sheets_pack_max_3x3.png)
 
-4. max size + trim :
+4. max size + max size + trim :
 
 ```java
 packMaxSize(file, true);
