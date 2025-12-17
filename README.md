@@ -72,8 +72,6 @@ public static int Max_Size = -1;
 1. keep size :
 
 ```java
-packKeepSize(file, false);
-// or
 pack(file, 0, 0, 0, 0, -1, -1, 0, 0, false);
 ```
 
@@ -82,8 +80,6 @@ pack(file, 0, 0, 0, 0, -1, -1, 0, 0, false);
 2. keep size + trim :
 
 ```java
-packKeepSize(file, true);
-// or
 pack(file, 0, 0, 0, 0, -1, -1, 0, 0, true);
 ```
 
