@@ -92,8 +92,6 @@ pack(file, 0, 0, 0, 0, 3, 3, 0, 0, true);
 3. max size :
 
 ```java
-packMaxSize(file, false);
-// or
 pack(file, 0, 0, -1, -1, -1, -1, 0, 0, false);
 // or
 pack(file, 0, 0, -1, -1, 3, 3, 0, 0, false);
@@ -104,8 +102,6 @@ pack(file, 0, 0, -1, -1, 3, 3, 0, 0, false);
 4. max size + trim :
 
 ```java
-packMaxSize(file, true);
-// or
 pack(file, 0, 0, -1, -1, -1, -1, 0, 0, true);
 // or
 pack(file, 0, 0, -1, -1, 3, 3, 0, 0, true);
