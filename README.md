@@ -73,6 +73,8 @@ public static int Max_Size = -1;
 
 ```java
 pack(file, 0, 0, 0, 0, -1, -1, 0, 0, false);
+//or
+pack(file, 0, 0, 0, 0, 3, 3, 0, 0, false);
 ```
 
 ![image](https://github.com/neverever1533/PixelPacker/blob/main/sheets_pack_keep_3x3.png)
@@ -81,6 +83,8 @@ pack(file, 0, 0, 0, 0, -1, -1, 0, 0, false);
 
 ```java
 pack(file, 0, 0, 0, 0, -1, -1, 0, 0, true);
+// or
+pack(file, 0, 0, 0, 0, 3, 3, 0, 0, true);
 ```
 
 ![image](https://github.com/neverever1533/PixelPacker/blob/main/sheets_pack_keep_3x3_trim.png)
@@ -91,6 +95,8 @@ pack(file, 0, 0, 0, 0, -1, -1, 0, 0, true);
 packMaxSize(file, false);
 // or
 pack(file, 0, 0, -1, -1, -1, -1, 0, 0, false);
+// or
+pack(file, 0, 0, -1, -1, 3, 3, 0, 0, false);
 ```
 
 ![image](https://github.com/neverever1533/PixelPacker/blob/main/sheets_pack_max_3x3.png)
@@ -101,6 +107,8 @@ pack(file, 0, 0, -1, -1, -1, -1, 0, 0, false);
 packMaxSize(file, true);
 // or
 pack(file, 0, 0, -1, -1, -1, -1, 0, 0, true);
+// or
+pack(file, 0, 0, -1, -1, 3, 3, 0, 0, true);
 ```
 
 ![image](https://github.com/neverever1533/PixelPacker/blob/main/sheets_pack_max_3x3_trim.png)
