@@ -64,11 +64,13 @@ Pack and Unpack images for the Sprite sheets.
 
 keep size是指保持原有尺寸，max size是指所有图片文件最大尺寸，trim则是清除透明边框后最大有效像素尺寸，line size小于0时默认打包为1行，row size同样小于0时默认按图片数打包正方形图集。
 
-### 举例：
+### 举例（图中红框为图块轮廓，打包时不包含）：
+
 ```java
 public static int Keep_Size = 0;
 public static int Max_Size = -1;
 ```
+
 1. keep size :
 
 ```java
@@ -118,10 +120,21 @@ pack(file, 0, 0, -1, -1, 3, 3, 0, 0, true);
 ![image](https://github.com/neverever1533/PixelPacker/blob/main/sheets_pack_max_3x3_trim.png)
 
 5. pack polygon :
+
+* 5.1 packPolygon:
+* 5.2 packPolygonNon :
+
 ```java
 packPolygon(file, false);
 ```
+
 ![image](https://github.com/neverever1533/PixelPacker/blob/main/sheets_pack_polygon.png)
+
+```java
+packPolygonNon(file, false);
+```
+
+![image](https://github.com/neverever1533/PixelPacker/blob/main/sheets_pack_polygon_non.png)
 
 
 <a id="method"></a>
@@ -133,6 +146,7 @@ packPolygon(file, false);
     * pack line
     * pack row
     * pack polygon
+    * pack polygon non
     * pack properties
 * <a href="#unpack-all">解包（Unpack）：</a>
     * unpack
@@ -158,6 +172,7 @@ packPolygon(file, false);
     * pack row keep size
 * <a href="#pack-polygon">打包多边形 （Pack Polygon）：</a>
     * pack polygon
+    * pack polygon non
 * <a href="#pack-properties">打包集 （Pack Properties）：</a>
     * pack properties
 
@@ -190,11 +205,13 @@ packPolygon(file, false);
 #### 1.打包 （Pack）：
 
 * pack
+
 ```java
 public void pack(File file, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight, boolean isTrim) {}
 ```
 
 * pack keep size
+
 ```java
 public void packKeepSize(File file, boolean isTrim) {}
 ```
@@ -204,6 +221,7 @@ public void packKeepSize(File file, int x, int y, int lineWidth, int rowHeight, 
 ```
 
 * pack max size
+
 ```java
 public void packMaxSize(File file, boolean isTrim) {}
 ```
@@ -220,6 +238,7 @@ public void packMaxSize(File file, int x, int y, int lineWidth, int rowHeight, b
 #### 2. 打包行 （Pack Line）：
 
 * pack line keep size
+
 ```java
 public void packLineKeepSize(File file, boolean isTrim) {}
 ```
@@ -229,6 +248,7 @@ public void packLineKeepSize(File file, int x, int y, int lineWidth, int rowHeig
 ```
 
 * pack line max size
+
 ```java
 public void packLineMaxSize(File file, boolean isTrim) {}
 ```
@@ -245,6 +265,7 @@ public void packLineMaxSize(File file, int x, int y, int lineWidth, int rowHeigh
 #### 3. 打包列 （Pack Row）：
 
 * pack row keep size
+
 ```java
 public void packRowKeepSize(File file, boolean isTrim) {}
 ```
@@ -254,6 +275,7 @@ public void packRowKeepSize(File file, int x, int y, int lineWidth, int rowHeigh
 ```
 
 * pack row max size
+
 ```java
 public void packRowMaxSize(File file, boolean isTrim) {}
 ```
@@ -269,12 +291,25 @@ public void packRowMaxSize(File file, int x, int y, int lineWidth, int rowHeight
 
 #### 4. 打包多边形 （Pack Polygon）：
 
+##### 4.1 混合打包（PackPolygon）
+
 * pack polygon
+
 ```java
 public void packPolygon(File file, boolean isTrim) {}
 ```
 
-扫描文件夹，不按照坐标并以图片次序打包为图集。
+扫描文件夹，以图片次序，填充图块后打包为图集。
+
+##### 4.2 混合打包（PackPolygonNon）
+
+* pack polygon non
+
+```java
+public void packPolygonNon(File file, boolean isTrim) {}
+```
+
+扫描文件夹，以图片次序，画布检测透明空间，填充图块后打包为图集。（适用于非封闭、不连贯、或异形图块紧密打包。）
 
 
 <a id="pack-properties"></a>
@@ -282,6 +317,7 @@ public void packPolygon(File file, boolean isTrim) {}
 #### 5. 打包集 （Pack Properties）：
 
 * pack properties
+
 ```java
 public void pack(File imageFile, File propFile, boolean isTrim) {}
 ```
@@ -302,6 +338,7 @@ public void pack(File imageFile, Properties properties, boolean isTrim) {}
 #### 6.解包 （Unpack）：
 
 * unpack
+
 ```java
 public void unpack(File file, int x, int y, int width, int height, boolean isTrim) {}
 ```
@@ -318,6 +355,7 @@ public void unpack(File file, int x, int y, int width, int height, int lineSize,
 #### 7. 解包多边形 （Unpack Polygon）：
 
 * unpack polygon
+
 ```java
 public void unpackPolygon(File file, boolean isTrim) {}
 ```
@@ -326,7 +364,7 @@ public void unpackPolygon(File file, boolean isTrim) {}
 public void unpackPolygon(File file, int width, int height, boolean isTrim) {}
 ```
 
-读取图片文件，解包图片中的非透明部分的像素块，然后分割并存储为多个图片。（已限制使用）
+读取图片文件，解包图片中的非透明部分的像素块，然后分割并存储为多个图片。（暂不开放）
 
 
 <a id="unpack-properties"></a>
@@ -334,6 +372,7 @@ public void unpackPolygon(File file, int width, int height, boolean isTrim) {}
 #### 8. 解包集 （Unpack Properties）：
 
 * unpack properties
+
 ```java
 public void unpack(File imageFile, File propFile, boolean isTrim) {}
 ```
