@@ -30,6 +30,7 @@ public class PixelPacker {
     private String suffix_Pack = "_pack_";
     private String suffix_Unpack = "_unpack_";
     private String suffix_Polygon = "polygon_";
+    private String suffix_Polygon_Non = "polygon_non_";
     private String suffix_Properties = "properties_";
     private String suffix_Xml = ".xml";
     private String tag_comment = "sprite pack";
@@ -382,6 +383,24 @@ public class PixelPacker {
     }
 
     public void packPolygon(File file, boolean isTrim) {
+        packPolygonTool(file, isTrim, false);
+    }
+
+    private BufferedImage packPolygon(BufferedImage[] array, boolean isTrim) {
+        return pixelSheet.packPolygon(array, isTrim);
+    }
+
+    public void packPolygonNon(String filePath, boolean isTrim) {
+        if (null != filePath) {
+            packPolygonNon(new File(filePath), isTrim);
+        }
+    }
+
+    public void packPolygonNon(File file, boolean isTrim) {
+        packPolygonTool(file, isTrim, true);
+    }
+
+    private void packPolygonTool(File file, boolean isTrim, boolean isAlpha) {
         if (null != file) {
             File dirFile;
             if (file.isFile()) {
@@ -390,14 +409,19 @@ public class PixelPacker {
                 dirFile = file;
             }
             if (null != dirFile) {
-                BufferedImage image = packPolygon(dirFile.listFiles(), isTrim);
-                String info = suffix_Pack + suffix_Polygon + isTrim;
+                BufferedImage image = packPolygonTool(dirFile.listFiles(), isTrim, isAlpha);
+                String info = suffix_Pack;
+                if (isAlpha) {
+                    info += suffix_Polygon_Non + isTrim;
+                } else {
+                    info += suffix_Polygon + isTrim;
+                }
                 pack(dirFile, image, pixelSheet.getPackProperties(), info);
             }
         }
     }
 
-    private BufferedImage packPolygon(File[] array, boolean isTrim) {
+    private BufferedImage packPolygonTool(File[] array, boolean isTrim, boolean isAlpha) {
         if (null != array) {
             ArrayList<BufferedImage> arrayList = new ArrayList<>();
             for (int i = 0; i < array.length; i++) {
@@ -406,17 +430,21 @@ public class PixelPacker {
                     arrayList.add(image);
                 }
             }
-            return packPolygon(arrayList, isTrim);
+            return packPolygonTool(arrayList, isTrim, isAlpha);
         }
         return null;
     }
 
-    private BufferedImage packPolygon(ArrayList<BufferedImage> arrayList, boolean isTrim) {
-        return packPolygon(toArray(arrayList), isTrim);
+    private BufferedImage packPolygonTool(ArrayList<BufferedImage> arrayList, boolean isTrim, boolean isAlpha) {
+        if (isAlpha) {
+            return packPolygonNon(toArray(arrayList), isTrim);
+        } else {
+            return packPolygon(toArray(arrayList), isTrim);
+        }
     }
 
-    private BufferedImage packPolygon(BufferedImage[] array, boolean isTrim) {
-        return pixelSheet.packPolygon(array, isTrim);
+    private BufferedImage packPolygonNon(BufferedImage[] array, boolean isTrim) {
+        return pixelSheet.packPolygonNon(array, isTrim);
     }
 
     public void unpack(File file, int x, int y, int width, int height, boolean isTrim) {
