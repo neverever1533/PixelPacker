@@ -145,7 +145,7 @@ Pack and Unpack images for the Sprite sheets.
     * -1（max width）
     * 0 （keep width）
 * int height （图片高度）
-    * -1 （max width）
+    * -1 （max height）
     * 0 （keep heght）
 * int lineSize （行数）
     * -1, 0 （max line）
@@ -153,6 +153,15 @@ Pack and Unpack images for the Sprite sheets.
     * -1, 0 （max row）
 * int lineWidth （行间隔）
 * int rowHeight （列间隔）
+* int directionX （横向顺序）
+    * -1 （从右到左）
+    * 1 （从左到右）
+* int directionY （纵向顺序）
+    * -1 （从下到上）
+    * 1 （从上到下）
+* boolean isPackVertical （排列）
+    * true （垂直排列）
+    * false （水平排列）
 
 keep size是指保持原有尺寸，max size是指所有图片文件最大尺寸，trim则是清除透明边框后最大有效像素尺寸，line size小于0时默认打包为1行，row size同样小于0时默认按图片数打包正方形图集。
 
@@ -282,6 +291,8 @@ unpackNon功能适用于pack，packPolygon和packPolygonNon产生的图集png解
 ### 打包 （Pack）：
 
 * <a href="#pack">打包 （Pack）：</a>
+    * setPackDirection
+    * setPackVertical
     * pack
     * pack keep size
     * pack max size
@@ -326,6 +337,24 @@ unpackNon功能适用于pack，packPolygon和packPolygonNon产生的图集png解
 <a id="pack"></a>
 
 #### 1.打包 （Pack）：
+
+* setPackDirection
+
+```java
+public void setPackDirection(int directionX, int directionY) {}
+```
+
+directionX小于0，则x坐标方向上从右到左排序，反之则从左向右排序，directionY同理大于0则从上到下顺序排列。
+
+* setPackVertical
+
+```java
+public void setPackVertical(boolean isPackVertical) {}
+```
+
+打包图集顺序默认为纵向，isPackVertical为false则横向排列打包。
+
+以上暂时packPolygon和packPolygonNon支持。
 
 * pack
 
