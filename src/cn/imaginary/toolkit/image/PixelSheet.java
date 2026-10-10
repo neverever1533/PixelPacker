@@ -6,6 +6,8 @@ import java.awt.image.BufferedImage;
 import java.util.*;
 
 public class PixelSheet {
+    public static boolean Is_Pack_Vertical = true;
+
     public static String tag_bounds_x = "x";
     public static String tag_bounds_y = "y";
     public static String tag_bounds_width = "width";
@@ -19,10 +21,22 @@ public class PixelSheet {
     public static int Area_Style_RGB = 0;
     public static int Area_Style_Subtract = 1;
     public static int Area_Style_Shape = 2;
+    public static int Direction_Up = -1;
+    public static int Direction_Left = -1;
+    public static int Direction_Right = 1;
+    public static int Direction_Down = 1;
+    public static int Pack_Horizontal = -1;
+    public static int Pack_Vertical = 1;
+
+    private boolean is_pack_vertical = Is_Pack_Vertical;
 
     private final int[] styles = {Area_Style_RGB, Area_Style_Subtract, Area_Style_Shape};
 
     private int area_style = 1;
+    private int direction_x = Direction_Right;
+    private int direction_y = Direction_Down;
+
+    private RGBTool RGBTool = new RGBTool();
 
     private Properties properties_pack;
     private Properties properties_unpack;
@@ -86,7 +100,7 @@ public class PixelSheet {
             int y_max = -1;
             for (int x = 0; x < image.getWidth(); x++) {
                 for (int y = 0; y < image.getHeight(); y++) {
-                    if (isRGB(image, x, y)) {
+                    if (RGBTool.isRGB(image, x, y)) {
                         if (x_min == -1) {
                             x_min = x;
                         }
@@ -124,7 +138,7 @@ public class PixelSheet {
         return null;
     }
 
-    private int[] getBounds(BufferedImage[] array) {
+    public int[] getBounds(BufferedImage[] array) {
         if (null != array) {
             int width_min = -1;
             int width_max = -1;
@@ -206,28 +220,6 @@ public class PixelSheet {
             return new Dimension(width_, height_);
         }
         return null;
-    }
-
-    public boolean isAlpha(BufferedImage image, int x, int y) {
-        if (null != image) {
-            return isAlpha(image.getRGB(x, y));
-        }
-        return false;
-    }
-
-    public boolean isAlpha(int rgb) {
-        return ((rgb >> 24) & 0xff) == 0;
-    }
-
-    public boolean isRGB(BufferedImage image, int x, int y) {
-        if (null != image) {
-            return isRGB(image.getRGB(x, y));
-        }
-        return false;
-    }
-
-    private boolean isRGB(int rgb) {
-        return !isAlpha(rgb);
     }
 
     private void updateImage(BufferedImage[] array, boolean isTrim) {
@@ -354,7 +346,15 @@ public class PixelSheet {
         }
     }
 
-    private void drawImage(Graphics2D graphics2D, BufferedImage image, int x, int y, int width, int height, Properties properties) {
+    public void drawImage(BufferedImage root, BufferedImage image, int x, int y) {
+        if (null != root && null != image) {
+            Graphics2D graphics2D = root.createGraphics();
+            drawImage(graphics2D, image, x, y, root.getWidth(), root.getHeight());
+            graphics2D.dispose();
+        }
+    }
+
+    private void drawImage(Graphics2D graphics2D, BufferedImage image, int x, int y, int width, int height) {
         if (null != graphics2D && null != image) {
             if (width > 0) {
                 x += (width - image.getWidth()) / 2;
@@ -363,28 +363,38 @@ public class PixelSheet {
                 y += (height - image.getHeight()) / 2;
             }
             graphics2D.drawImage(image, x, y, null);
-            updatePackProperties(properties, image, x, y);
         }
     }
 
-    private void updatePackProperties(Properties properties, BufferedImage image, int x, int y) {
+    private void drawImage(Graphics2D graphics2D, BufferedImage image, int x, int y, int width, int height, Properties properties) {
+        drawImage(graphics2D, image, x, y, width, height);
+        updatePackProperties(properties, image, x, y, false);
+    }
+
+    private void updatePackProperties(Properties properties, BufferedImage image, int x, int y, boolean isAlpha) {
         if (null != properties && null != image) {
+            int[] bounds = getBounds(image);
+            if (null != bounds) {
+                int left = bounds[0];
+                int right = bounds[0] + bounds[2];
+                int top = bounds[1];
+                int bottom = bounds[1] + bounds[3];
+                properties.put(tag_bounds_left, left);
+                properties.put(tag_bounds_right, right);
+                properties.put(tag_bounds_top, top);
+                properties.put(tag_bounds_bottom, bottom);
+                if (isAlpha) {
+                    if (x >= left && y >= top) {
+                        x -= left;
+                        y -= top;
+                    }
+                }
+            }
             properties.put(tag_bounds_x, x);
             properties.put(tag_bounds_y, y);
             properties.put(tag_bounds_width, image.getWidth());
             properties.put(tag_bounds_height, image.getHeight());
-            updatePackProperties(properties, image);
             updatePackProperties(properties, image, getCheckStyle());
-        }
-    }
-
-    private void updatePackProperties(Properties properties, BufferedImage image) {
-        if (null != properties && null != image) {
-            int[] bounds = getBounds(image);
-            properties.put(tag_bounds_left, bounds[0]);
-            properties.put(tag_bounds_right, bounds[0] + bounds[2]);
-            properties.put(tag_bounds_top, bounds[1]);
-            properties.put(tag_bounds_bottom, bounds[1] + bounds[3]);
         }
     }
 
@@ -443,20 +453,33 @@ public class PixelSheet {
         return null;
     }
 
+    public void setPackDirection(int directionX, int directionY) {
+        direction_x = directionX;
+        direction_y = directionY;
+    }
+
     public BufferedImage packPolygon(BufferedImage[] array, boolean isTrim) {
-        return packPolygonTool(array, isTrim, false);
+        return packPolygonTool(array, isTrim, false, direction_x, direction_y);
+    }
+
+    public BufferedImage packPolygon(BufferedImage[] array, boolean isTrim, int directionX, int directionY) {
+        return packPolygonTool(array, isTrim, false, directionX, directionY);
     }
 
     public BufferedImage packPolygonNon(BufferedImage[] array, boolean isTrim) {
-        return packPolygonTool(array, isTrim, true);
+        return packPolygonTool(array, isTrim, true, direction_x, direction_y);
     }
 
-    private BufferedImage packPolygonTool(BufferedImage[] array, boolean isTrim, boolean isAlpha) {
+    public BufferedImage packPolygonNon(BufferedImage[] array, boolean isTrim, int directionX, int directionY) {
+        return packPolygonTool(array, isTrim, true, directionX, directionY);
+    }
+
+    private BufferedImage packPolygonTool(BufferedImage[] array, boolean isTrim, boolean isAlpha, int directionX, int directionY) {
         if (null != array) {
             updateImage(array, isTrim);
             Dimension dimension = getSize(array);
             BufferedImage image = new BufferedImage(dimension.width, dimension.height, BufferedImage.TYPE_INT_ARGB);
-            packPolygonTool(image, array, isAlpha);
+            packPolygonTool(image, array, isAlpha, directionX, directionY);
             return image;
         }
         return null;
@@ -486,7 +509,7 @@ public class PixelSheet {
         return null;
     }
 
-    private void packPolygonTool(BufferedImage root, BufferedImage[] array, boolean isAlpha) {
+    private void packPolygonTool(BufferedImage root, BufferedImage[] array, boolean isAlpha, int directionX, int directionY) {
         if (null != root && null != array) {
             boolean[][] records = new boolean[root.getWidth()][root.getHeight()];
             Properties properties = new Properties();
@@ -494,7 +517,7 @@ public class PixelSheet {
                 BufferedImage image = array[i];
                 if (null != image) {
                     Properties prop = new Properties();
-                    packPolygonTool(root, image, records, prop, isAlpha);
+                    packPolygonTool(root, image, records, prop, isAlpha, directionX, directionY);
                     properties.put(i, prop);
                 }
             }
@@ -502,18 +525,107 @@ public class PixelSheet {
         }
     }
 
-    private void packPolygonTool(BufferedImage root, BufferedImage image, boolean[][] records, Properties properties, boolean isAlpha) {
+    public void setPackVertical(boolean isPackVertical) {
+        is_pack_vertical = isPackVertical;
+    }
+
+    public boolean isPackVertical() {
+        return is_pack_vertical;
+    }
+
+    private void packPolygonTool(BufferedImage root, BufferedImage image, boolean[][] records, Properties properties, boolean isAlpha, int directionX, int directionY) {
         if (null != root && null != image && null != records) {
             int width = root.getWidth();
             int height = root.getHeight();
-            for (int x = 0; x < width; x++) {
-                for (int y = 0; y < height; y++) {
-                    if (!records[x][y]) {
-                        if (check(root, image, records, x, y)) {
-                            update(root, image, records, x, y, isAlpha);
-                            drawImage(root, image, x, y);
-                            updatePackProperties(properties, image, x, y);
-                            return;
+            if (isPackVertical()) {
+                if (directionX > 0 && directionY > 0) {
+                    for (int x = 0; x < width; x++) {
+                        for (int y = 0; y < height; y++) {
+                            if (!records[x][y]) {
+                                if (check(root, image, records, x, y)) {
+                                    update(root, image, records, x, y, properties, isAlpha);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                } else if (directionX > 0 && directionY < 0) {
+                    for (int x = 0; x < width; x++) {
+                        for (int y = height - 1; y >= 0; y--) {
+                            if (!records[x][y]) {
+                                if (check(root, image, records, x, y)) {
+                                    update(root, image, records, x, y, properties, isAlpha);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                } else if (directionX < 0 && directionY > 0) {
+                    for (int x = width - 1; x >= 0; x--) {
+                        for (int y = 0; y < height; y++) {
+                            if (!records[x][y]) {
+                                if (check(root, image, records, x, y)) {
+                                    update(root, image, records, x, y, properties, isAlpha);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                } else if (directionX < 0 && directionY < 0) {
+                    for (int x = width - 1; x >= 0; x--) {
+                        for (int y = height - 1; y >= 0; y--) {
+                            if (!records[x][y]) {
+                                if (check(root, image, records, x, y)) {
+                                    update(root, image, records, x, y, properties, isAlpha);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                if (directionX > 0 && directionY > 0) {
+                    for (int y = 0; y < height; y++) {
+                        for (int x = 0; x < width; x++) {
+                            if (!records[x][y]) {
+                                if (check(root, image, records, x, y)) {
+                                    update(root, image, records, x, y, properties, isAlpha);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                } else if (directionX > 0 && directionY < 0) {
+                    for (int y = height - 1; y >= 0; y--) {
+                        for (int x = 0; x < width; x++) {
+                            if (!records[x][y]) {
+                                if (check(root, image, records, x, y)) {
+                                    update(root, image, records, x, y, properties, isAlpha);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                } else if (directionX < 0 && directionY > 0) {
+                    for (int y = 0; y < height; y++) {
+                        for (int x = width - 1; x >= 0; x--) {
+                            if (!records[x][y]) {
+                                if (check(root, image, records, x, y)) {
+                                    update(root, image, records, x, y, properties, isAlpha);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                } else if (directionX < 0 && directionY < 0) {
+                    for (int y = height - 1; y >= 0; y--) {
+                        for (int x = width - 1; x >= 0; x--) {
+                            if (!records[x][y]) {
+                                if (check(root, image, records, x, y)) {
+                                    update(root, image, records, x, y, properties, isAlpha);
+                                    return;
+                                }
+                            }
                         }
                     }
                 }
@@ -539,6 +651,12 @@ public class PixelSheet {
         return false;
     }
 
+    private void update(BufferedImage root, BufferedImage image, boolean[][] records, int x, int y, Properties properties, boolean isAlpha) {
+        update(root, image, records, x, y, isAlpha);
+        drawImage(root, image, x, y, false);
+        updatePackProperties(properties, image, x, y, false);
+    }
+
     private void update(BufferedImage root, BufferedImage image, boolean[][] records, int offsetX, int offsetY, boolean isAlpha) {
         if (null != root && null != image && null != records) {
             int width = offsetX + image.getWidth();
@@ -548,7 +666,7 @@ public class PixelSheet {
                     for (int y = offsetY; y < height; y++) {
                         if (!records[x][y]) {
                             if (isAlpha) {
-                                if (isRGB(image, x - offsetX, y - offsetY)) {
+                                if (RGBTool.isRGB(image, x - offsetX, y - offsetY)) {
                                     records[x][y] = true;
                                 }
                             } else {
@@ -561,8 +679,19 @@ public class PixelSheet {
         }
     }
 
-    private void drawImage(BufferedImage root, BufferedImage image, int x, int y) {
+    private void drawImage(BufferedImage root, BufferedImage image, int x, int y, boolean isAlpha) {
         if (null != root && null != image) {
+            if (isAlpha) {
+                int[] bounds = getBounds(image);
+                if (null != bounds) {
+                    int left = bounds[0];
+                    int top = bounds[1];
+                    if (x >= left && y >= top) {
+                        x -= left;
+                        y -= top;
+                    }
+                }
+            }
             Graphics2D graphics2D = root.createGraphics();
             graphics2D.drawImage(image, x, y, null);
             graphics2D.dispose();
@@ -869,7 +998,7 @@ public class PixelSheet {
                     if (null != image) {
                         arrayList.add(image);
                         Properties prop = new Properties();
-                        updatePackProperties(prop, image, x_, y_);
+                        updatePackProperties(prop, image, x_, y_, false);
                         properties.put(index, prop);
                         index++;
                     }
