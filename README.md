@@ -344,7 +344,7 @@ unpackNon功能适用于pack，packPolygon和packPolygonNon产生的图集png解
 public void setPackDirection(int directionX, int directionY) {}
 ```
 
-directionX小于0，则x坐标方向上从右到左排序，反之则从左向右排序，directionY同理大于0则从上到下顺序排列。
+排序方向默认向下和向右，directionX小于0，则在x坐标方向上以从右到左的顺序排序，反之则从左到右排序，directionY同理大于0则从上到下的顺序排列。
 
 * setPackVertical
 
