@@ -14,6 +14,10 @@ import java.util.*;
 public class PixelPacker {
     public static int MaxSize = -1;
     public static int KeepSize = 0;
+    public static int Direction_Up = PixelSheet.Direction_Up;
+    public static int Direction_Left = PixelSheet.Direction_Left;
+    public static int Direction_Right = PixelSheet.Direction_Right;
+    public static int Direction_Down = PixelSheet.Direction_Down;
 
     private int type_Prefix = -1;
     private int type_Suffix = 1;
@@ -68,7 +72,7 @@ public class PixelPacker {
         return null;
     }
 
-    private Properties readProperties(File file) {
+    public Properties readProperties(File file) {
         return readJson(file);
 //        return readXML(file);
     }
@@ -126,7 +130,7 @@ public class PixelPacker {
         }
     }
 
-    private void writeProperties(Properties properties, File file) {
+    public void writeProperties(Properties properties, File file) {
         properties = formatInfo(properties);
 //        System.out.println("write properties: " + properties);
         writeJson(properties, file);
@@ -334,6 +338,14 @@ public class PixelPacker {
             }
         }
         return string;
+    }
+
+    public void setPackDirection(int directionX, int directionY) {
+        pixelSheet.setPackDirection(directionX, directionY);
+    }
+
+    public void setPackVertical(boolean isPackVertical) {
+        pixelSheet.setPackVertical(isPackVertical);
     }
 
     public void pack(File file, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight, boolean isTrim) {
