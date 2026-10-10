@@ -296,17 +296,17 @@ unpackNon功能适用于pack，packPolygon和packPolygonNon产生的图集png解
     * pack
     * pack keep size
     * pack max size
-* <a href="#pack-line">打包行 （Pack Line）：</a>
-    * pack line keep size
-    * pack line max size
-* <a href="#pack-row">打包列 （Pack Row）：</a>
-    * pack row keep size
-    * pack row keep size
-* <a href="#pack-polygon">打包多边形 （Pack Polygon）：</a>
-    * pack polygon
-    * pack polygon non
-* <a href="#pack-properties">打包集 （Pack Properties）：</a>
-    * pack properties
+    * <a href="#pack-line">打包行 （Pack Line）：</a>
+        * pack line keep size
+        * pack line max size
+    * <a href="#pack-row">打包列 （Pack Row）：</a>
+        * pack row keep size
+        * pack row keep size
+    * <a href="#pack-polygon">打包多边形 （Pack Polygon）：</a>
+        * pack polygon
+        * pack polygon non
+    * <a href="#pack-properties">打包集 （Pack Properties）：</a>
+        * pack properties
 
 
 <a id="unpack-all"></a>
@@ -315,12 +315,12 @@ unpackNon功能适用于pack，packPolygon和packPolygonNon产生的图集png解
 
 * <a href="#unpack">解包 （Unpack）：</a>
     * unpack
-* <a href="#unpack-polygon">解包多边形 （Unpack Polygon）：</a>
-    * unpack polygon
-* <a href="#unpack-properties">解包集 （unpack properties）</a>
-    * unpack properties
-        * unpack
-        * unpack non
+    * <a href="#unpack-polygon">解包多边形 （Unpack Polygon）：</a>
+        * unpack polygon
+    * <a href="#unpack-properties">解包集 （unpack properties）</a>
+        * unpack properties
+            * unpack
+            * unpack non
 
 打包或解包所有的方法。
 
