@@ -162,6 +162,10 @@ Pack and Unpack images for the Sprite sheets.
 * boolean isPackVertical （排列）
     * true （垂直排列）
     * false （水平排列）
+* int packLevel （紧凑级别）
+    * -1 （不处理）
+    * 0 （普通）
+    * 1 （极致）
 
 keep size是指保持原有尺寸，max size是指所有图片文件最大尺寸，trim则是清除透明边框后最大有效像素尺寸，line size小于0时默认打包为1行，row size同样小于0时默认按图片数打包正方形图集。
 
@@ -293,6 +297,7 @@ unpackNon功能适用于pack，packPolygon和packPolygonNon产生的图集png解
 * <a href="#pack">打包 （Pack）：</a>
     * setPackDirection
     * setPackVertical
+    * setPackLevel
     * pack
     * pack keep size
     * pack max size
@@ -356,6 +361,20 @@ public void setPackVertical(boolean isPackVertical) {}
 
 以上暂时packPolygon和packPolygonNon支持。
 
+* setPackLevel
+
+```java
+public void setPackLevel(int packLevel) {}
+```
+
+packPolygonNon设置打包紧凑级别：
+
+级别-1为不处理待写入图片（默认）；
+
+级别0为检测图片透明边界，保持图片之间间隔1像素单位的透明边界（上下左右+4个角落）；
+
+级别1如上，但省去四个角落的间隔。
+
 * pack
 
 ```java
@@ -384,6 +403,7 @@ public void packMaxSize(File file, int x, int y, int lineWidth, int rowHeight, b
 
 扫描文件夹（若选择文件，则扫描文件所在文件夹，pack的所有方法类同），将多个图片按照参数打包为指定行数和列数的图集。
 
+packKeepSize(file, isTrim)和packMaxSize(file, isTrim)中，默认行列均为-1，行列间隔均为0，统一尺寸为所有图片中的最大尺寸，按图片数量自动计算行列，最终打包为正方形图集。
 
 <a id="pack-line"></a>
 
