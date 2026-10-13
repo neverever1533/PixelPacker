@@ -348,6 +348,14 @@ public class PixelPacker {
         pixelSheet.setPackVertical(isPackVertical);
     }
 
+    public void setPackLevel(int packLevel) {
+        pixelSheet.setPackLevel(packLevel);
+    }
+
+    public void setPackSize(int width, int height) {
+        pixelSheet.setPackSize(width, height);
+    }
+
     public void pack(File file, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight, boolean isTrim) {
         if (null != file) {
             File dirFile;
