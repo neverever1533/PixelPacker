@@ -586,12 +586,6 @@ public class PixelSheet {
                 if (isDirectionRight() && isDirectionDown()) {
                     for (int x = 0; x < width; x++) {
                         for (int y = 0; y < height; y++) {
-//                            if (!records[x][y]) {
-//                                if (check(root, image, records, x, y)) {
-//                                    update(root, image, records, x, y, properties, isAlpha);
-//                                    return;
-//                                }
-//                            }
                             if (check(root, image, records, x, y, properties, isAlpha)) {
                                 return;
                             }
@@ -600,12 +594,6 @@ public class PixelSheet {
                 } else if (isDirectionRight() && !isDirectionDown()) {
                     for (int x = 0; x < width; x++) {
                         for (int y = height - 1; y >= 0; y--) {
-//                            if (!records[x][y]) {
-//                                if (check(root, image, records, x, y)) {
-//                                    update(root, image, records, x, y, properties, isAlpha);
-//                                    return;
-//                                }
-//                            }
                             if (check(root, image, records, x, y, properties, isAlpha)) {
                                 return;
                             }
@@ -614,12 +602,6 @@ public class PixelSheet {
                 } else if (!isDirectionRight() && isDirectionDown()) {
                     for (int x = width - 1; x >= 0; x--) {
                         for (int y = 0; y < height; y++) {
-//                            if (!records[x][y]) {
-//                                if (check(root, image, records, x, y)) {
-//                                    update(root, image, records, x, y, properties, isAlpha);
-//                                    return;
-//                                }
-//                            }
                             if (check(root, image, records, x, y, properties, isAlpha)) {
                                 return;
                             }
@@ -628,12 +610,6 @@ public class PixelSheet {
                 } else if (!isDirectionRight() && !isDirectionDown()) {
                     for (int x = width - 1; x >= 0; x--) {
                         for (int y = height - 1; y >= 0; y--) {
-//                            if (!records[x][y]) {
-//                                if (check(root, image, records, x, y)) {
-//                                    update(root, image, records, x, y, properties, isAlpha);
-//                                    return;
-//                                }
-//                            }
                             if (check(root, image, records, x, y, properties, isAlpha)) {
                                 return;
                             }
@@ -644,12 +620,6 @@ public class PixelSheet {
                 if (isDirectionRight() && isDirectionDown()) {
                     for (int y = 0; y < height; y++) {
                         for (int x = 0; x < width; x++) {
-//                            if (!records[x][y]) {
-//                                if (check(root, image, records, x, y)) {
-//                                    update(root, image, records, x, y, properties, isAlpha);
-//                                    return;
-//                                }
-//                            }
                             if (check(root, image, records, x, y, properties, isAlpha)) {
                                 return;
                             }
@@ -658,12 +628,6 @@ public class PixelSheet {
                 } else if (isDirectionRight() && !isDirectionDown()) {
                     for (int y = height - 1; y >= 0; y--) {
                         for (int x = 0; x < width; x++) {
-//                            if (!records[x][y]) {
-//                                if (check(root, image, records, x, y)) {
-//                                    update(root, image, records, x, y, properties, isAlpha);
-//                                    return;
-//                                }
-//                            }
                             if (check(root, image, records, x, y, properties, isAlpha)) {
                                 return;
                             }
@@ -672,12 +636,6 @@ public class PixelSheet {
                 } else if (!isDirectionRight() && isDirectionDown()) {
                     for (int y = 0; y < height; y++) {
                         for (int x = width - 1; x >= 0; x--) {
-//                            if (!records[x][y]) {
-//                                if (check(root, image, records, x, y)) {
-//                                    update(root, image, records, x, y, properties, isAlpha);
-//                                    return;
-//                                }
-//                            }
                             if (check(root, image, records, x, y, properties, isAlpha)) {
                                 return;
                             }
@@ -686,12 +644,6 @@ public class PixelSheet {
                 } else if (!isDirectionRight() && !isDirectionDown()) {
                     for (int y = height - 1; y >= 0; y--) {
                         for (int x = width - 1; x >= 0; x--) {
-//                            if (!records[x][y]) {
-//                                if (check(root, image, records, x, y)) {
-//                                    update(root, image, records, x, y, properties, isAlpha);
-//                                    return;
-//                                }
-//                            }
                             if (check(root, image, records, x, y, properties, isAlpha)) {
                                 return;
                             }
@@ -703,10 +655,6 @@ public class PixelSheet {
     }
 
     private boolean check(BufferedImage root, BufferedImage image, boolean[][] records, int x, int y, Properties properties, boolean isAlpha) {
-//        if (check(root, image, records, x, y)) {
-//            update(root, image, records, x, y, properties, isAlpha);
-//            return true;
-//        }
         if (!records[x][y]) {
             if (check(root, image, records, x, y)) {
                 update(root, image, records, x, y, properties, isAlpha);
