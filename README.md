@@ -247,7 +247,17 @@ packPolygonNon(file, false);
 
 2.多边形图块：
 
+(1) 不处理（packLevel -1）:
+
 ![image](https://github.com/neverever1533/PixelPacker/blob/main/sheets_pack_polygon_non_1.png)
+
+(2) 普通（packLevel 0）:
+
+![image](https://github.com/neverever1533/PixelPacker/blob/main/sheets_pack_polygon_non_2.png)
+
+(3) 极致（packLevel 1）:
+
+![image](https://github.com/neverever1533/PixelPacker/blob/main/sheets_pack_polygon_non_3.png)
 
 pack功能可按参数要求打包图片为图集png。
 
