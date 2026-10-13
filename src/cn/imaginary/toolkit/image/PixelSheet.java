@@ -6,7 +6,12 @@ import java.awt.image.BufferedImage;
 import java.util.*;
 
 public class PixelSheet {
+    public static boolean Is_Pack_Horizontal = false;
     public static boolean Is_Pack_Vertical = true;
+    public static boolean Is_Direction_Up = false;
+    public static boolean Is_Direction_Left = false;
+    public static boolean Is_Direction_Right = true;
+    public static boolean Is_Direction_Down = true;
 
     public static String tag_bounds_x = "x";
     public static String tag_bounds_y = "y";
@@ -25,16 +30,20 @@ public class PixelSheet {
     public static int Direction_Left = -1;
     public static int Direction_Right = 1;
     public static int Direction_Down = 1;
-    public static int Pack_Horizontal = -1;
-    public static int Pack_Vertical = 1;
+    public static int Pack_Level_None = -1;
+    public static int Pack_Level_Normal = 0;
+    public static int Pack_Level_Extreme = 1;
 
     private boolean is_pack_vertical = Is_Pack_Vertical;
+    private boolean is_direction_right = Is_Direction_Right;
+    private boolean is_direction_down = Is_Direction_Down;
+
+    private Dimension canvas;
 
     private final int[] styles = {Area_Style_RGB, Area_Style_Subtract, Area_Style_Shape};
 
     private int area_style = 1;
-    private int direction_x = Direction_Right;
-    private int direction_y = Direction_Down;
+    private int pack_level = Pack_Level_None;
 
     private RGBTool RGBTool = new RGBTool();
 
@@ -254,31 +263,36 @@ public class PixelSheet {
     public BufferedImage pack(BufferedImage[] array, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight, boolean isTrim) {
         if (null != array) {
             updateImage(array, isTrim);
-            if (lineSize <= 0) {
-                if (rowSize <= 0) {
-                    double size_sqrt = Math.sqrt(array.length);
-                    int size = (int) size_sqrt;
-                    if (size != size_sqrt) {
-                        size += 1;
+            Dimension canvas = getPackSize();
+            if (null == canvas) {
+                if (lineSize <= 0) {
+                    if (rowSize <= 0) {
+                        double size_sqrt = Math.sqrt(array.length);
+                        int size = (int) size_sqrt;
+                        if (size != size_sqrt) {
+                            size += 1;
+                        }
+                        lineSize = size;
+                        rowSize = size;
+                    } else {
+                        lineSize = array.length / rowSize;
                     }
-                    lineSize = size;
-                    rowSize = size;
                 } else {
-                    lineSize = array.length / rowSize;
+                    if (rowSize <= 0) {
+                        rowSize = array.length / lineSize;
+                    }
                 }
-            } else {
-                if (rowSize <= 0) {
-                    rowSize = array.length / lineSize;
-                }
+                canvas = getSize(array, width, height, lineSize, rowSize, lineWidth, rowHeight);
             }
-            Dimension bounds = getSize(array, width, height, lineSize, rowSize, lineWidth, rowHeight);
-            BufferedImage image = new BufferedImage(bounds.width, bounds.height, BufferedImage.TYPE_INT_ARGB);
-            pack(image, array, width, height, lineSize, rowSize, lineWidth, rowHeight);
-            if (x != 0 || y != 0) {
-                updatePackProperties(getPackProperties(), x, y);
-                return drawImage(image, x, y);
-            } else {
-                return image;
+            if (null != canvas) {
+                BufferedImage image = new BufferedImage(canvas.width, canvas.height, BufferedImage.TYPE_INT_ARGB);
+                pack(image, array, width, height, lineSize, rowSize, lineWidth, rowHeight);
+                if (x != 0 || y != 0) {
+                    updatePackProperties(getPackProperties(), x, y);
+                    return drawImage(image, x, y);
+                } else {
+                    return image;
+                }
             }
         }
         return null;
@@ -368,10 +382,10 @@ public class PixelSheet {
 
     private void drawImage(Graphics2D graphics2D, BufferedImage image, int x, int y, int width, int height, Properties properties) {
         drawImage(graphics2D, image, x, y, width, height);
-        updatePackProperties(properties, image, x, y, false);
+        update(properties, image, x, y, false);
     }
 
-    private void updatePackProperties(Properties properties, BufferedImage image, int x, int y, boolean isAlpha) {
+    private void update(Properties properties, BufferedImage image, int x, int y, boolean isAlpha) {
         if (null != properties && null != image) {
             int[] bounds = getBounds(image);
             if (null != bounds) {
@@ -404,9 +418,12 @@ public class PixelSheet {
     public BufferedImage pack(BufferedImage[] array, Properties properties, boolean isTrim) {
         if (null != array) {
             updateImage(array, isTrim);
-            Dimension dimension = getSize(array);
-            if (null != dimension) {
-                BufferedImage root = new BufferedImage(dimension.width, dimension.height, BufferedImage.TYPE_INT_ARGB);
+            Dimension canvas = getPackSize();
+            if (null == canvas) {
+                canvas = getSize(array);
+            }
+            if (null != canvas) {
+                BufferedImage root = new BufferedImage(canvas.width, canvas.height, BufferedImage.TYPE_INT_ARGB);
                 Graphics2D graphics2D = root.createGraphics();
                 if (null != properties) {
                     Set<Object> kset = properties.keySet();
@@ -453,34 +470,61 @@ public class PixelSheet {
         return null;
     }
 
+    public void setPackDirection(boolean isDirectionRight, boolean isDirectionDown) {
+        setDirectionRight(isDirectionRight);
+        setDirectionDown(isDirectionDown);
+    }
+
     public void setPackDirection(int directionX, int directionY) {
-        direction_x = directionX;
-        direction_y = directionY;
+        setPackDirection(directionX > 0, directionY > 0);
+    }
+
+    public void setDirectionRight(boolean isDirectionRight) {
+        is_direction_right = isDirectionRight;
+    }
+
+    public boolean isDirectionRight() {
+        return is_direction_right;
+    }
+
+    public void setDirectionDown(boolean isDirectionDown) {
+        is_direction_down = isDirectionDown;
+    }
+
+    public boolean isDirectionDown() {
+        return is_direction_down;
+    }
+
+    public void setPackSize(int width, int height) {
+        if (width > 0 && height > 0) {
+            canvas = new Dimension(width, height);
+        }
+    }
+
+    public Dimension getPackSize() {
+        return canvas;
     }
 
     public BufferedImage packPolygon(BufferedImage[] array, boolean isTrim) {
-        return packPolygonTool(array, isTrim, false, direction_x, direction_y);
-    }
-
-    public BufferedImage packPolygon(BufferedImage[] array, boolean isTrim, int directionX, int directionY) {
-        return packPolygonTool(array, isTrim, false, directionX, directionY);
+        return packPolygonTool(array, isTrim, false);
     }
 
     public BufferedImage packPolygonNon(BufferedImage[] array, boolean isTrim) {
-        return packPolygonTool(array, isTrim, true, direction_x, direction_y);
+        return packPolygonTool(array, isTrim, true);
     }
 
-    public BufferedImage packPolygonNon(BufferedImage[] array, boolean isTrim, int directionX, int directionY) {
-        return packPolygonTool(array, isTrim, true, directionX, directionY);
-    }
-
-    private BufferedImage packPolygonTool(BufferedImage[] array, boolean isTrim, boolean isAlpha, int directionX, int directionY) {
+    private BufferedImage packPolygonTool(BufferedImage[] array, boolean isTrim, boolean isAlpha) {
         if (null != array) {
             updateImage(array, isTrim);
-            Dimension dimension = getSize(array);
-            BufferedImage image = new BufferedImage(dimension.width, dimension.height, BufferedImage.TYPE_INT_ARGB);
-            packPolygonTool(image, array, isAlpha, directionX, directionY);
-            return image;
+            Dimension canvas = getPackSize();
+            if (null == canvas) {
+                canvas = getSize(array);
+            }
+            if (null != canvas) {
+                BufferedImage image = new BufferedImage(canvas.width, canvas.height, BufferedImage.TYPE_INT_ARGB);
+                packPolygonTool(image, array, isAlpha);
+                return image;
+            }
         }
         return null;
     }
@@ -509,7 +553,7 @@ public class PixelSheet {
         return null;
     }
 
-    private void packPolygonTool(BufferedImage root, BufferedImage[] array, boolean isAlpha, int directionX, int directionY) {
+    private void packPolygonTool(BufferedImage root, BufferedImage[] array, boolean isAlpha) {
         if (null != root && null != array) {
             boolean[][] records = new boolean[root.getWidth()][root.getHeight()];
             Properties properties = new Properties();
@@ -517,9 +561,10 @@ public class PixelSheet {
                 BufferedImage image = array[i];
                 if (null != image) {
                     Properties prop = new Properties();
-                    packPolygonTool(root, image, records, prop, isAlpha, directionX, directionY);
+                    packPolygonTool(root, image, records, prop, isAlpha);
                     properties.put(i, prop);
                 }
+                System.out.println("pack:" + ((double) (i + 1) / array.length) * 100 + "%");
             }
             setPackProperties(properties);
         }
@@ -533,98 +578,122 @@ public class PixelSheet {
         return is_pack_vertical;
     }
 
-    private void packPolygonTool(BufferedImage root, BufferedImage image, boolean[][] records, Properties properties, boolean isAlpha, int directionX, int directionY) {
+    private void packPolygonTool(BufferedImage root, BufferedImage image, boolean[][] records, Properties properties, boolean isAlpha) {
         if (null != root && null != image && null != records) {
             int width = root.getWidth();
             int height = root.getHeight();
             if (isPackVertical()) {
-                if (directionX > 0 && directionY > 0) {
+                if (isDirectionRight() && isDirectionDown()) {
                     for (int x = 0; x < width; x++) {
                         for (int y = 0; y < height; y++) {
-                            if (!records[x][y]) {
-                                if (check(root, image, records, x, y)) {
-                                    update(root, image, records, x, y, properties, isAlpha);
-                                    return;
-                                }
+//                            if (!records[x][y]) {
+//                                if (check(root, image, records, x, y)) {
+//                                    update(root, image, records, x, y, properties, isAlpha);
+//                                    return;
+//                                }
+//                            }
+                            if (check(root, image, records, x, y, properties, isAlpha)) {
+                                return;
                             }
                         }
                     }
-                } else if (directionX > 0 && directionY < 0) {
+                } else if (isDirectionRight() && !isDirectionDown()) {
                     for (int x = 0; x < width; x++) {
                         for (int y = height - 1; y >= 0; y--) {
-                            if (!records[x][y]) {
-                                if (check(root, image, records, x, y)) {
-                                    update(root, image, records, x, y, properties, isAlpha);
-                                    return;
-                                }
+//                            if (!records[x][y]) {
+//                                if (check(root, image, records, x, y)) {
+//                                    update(root, image, records, x, y, properties, isAlpha);
+//                                    return;
+//                                }
+//                            }
+                            if (check(root, image, records, x, y, properties, isAlpha)) {
+                                return;
                             }
                         }
                     }
-                } else if (directionX < 0 && directionY > 0) {
+                } else if (!isDirectionRight() && isDirectionDown()) {
                     for (int x = width - 1; x >= 0; x--) {
                         for (int y = 0; y < height; y++) {
-                            if (!records[x][y]) {
-                                if (check(root, image, records, x, y)) {
-                                    update(root, image, records, x, y, properties, isAlpha);
-                                    return;
-                                }
+//                            if (!records[x][y]) {
+//                                if (check(root, image, records, x, y)) {
+//                                    update(root, image, records, x, y, properties, isAlpha);
+//                                    return;
+//                                }
+//                            }
+                            if (check(root, image, records, x, y, properties, isAlpha)) {
+                                return;
                             }
                         }
                     }
-                } else if (directionX < 0 && directionY < 0) {
+                } else if (!isDirectionRight() && !isDirectionDown()) {
                     for (int x = width - 1; x >= 0; x--) {
                         for (int y = height - 1; y >= 0; y--) {
-                            if (!records[x][y]) {
-                                if (check(root, image, records, x, y)) {
-                                    update(root, image, records, x, y, properties, isAlpha);
-                                    return;
-                                }
+//                            if (!records[x][y]) {
+//                                if (check(root, image, records, x, y)) {
+//                                    update(root, image, records, x, y, properties, isAlpha);
+//                                    return;
+//                                }
+//                            }
+                            if (check(root, image, records, x, y, properties, isAlpha)) {
+                                return;
                             }
                         }
                     }
                 }
             } else {
-                if (directionX > 0 && directionY > 0) {
+                if (isDirectionRight() && isDirectionDown()) {
                     for (int y = 0; y < height; y++) {
                         for (int x = 0; x < width; x++) {
-                            if (!records[x][y]) {
-                                if (check(root, image, records, x, y)) {
-                                    update(root, image, records, x, y, properties, isAlpha);
-                                    return;
-                                }
+//                            if (!records[x][y]) {
+//                                if (check(root, image, records, x, y)) {
+//                                    update(root, image, records, x, y, properties, isAlpha);
+//                                    return;
+//                                }
+//                            }
+                            if (check(root, image, records, x, y, properties, isAlpha)) {
+                                return;
                             }
                         }
                     }
-                } else if (directionX > 0 && directionY < 0) {
+                } else if (isDirectionRight() && !isDirectionDown()) {
                     for (int y = height - 1; y >= 0; y--) {
                         for (int x = 0; x < width; x++) {
-                            if (!records[x][y]) {
-                                if (check(root, image, records, x, y)) {
-                                    update(root, image, records, x, y, properties, isAlpha);
-                                    return;
-                                }
+//                            if (!records[x][y]) {
+//                                if (check(root, image, records, x, y)) {
+//                                    update(root, image, records, x, y, properties, isAlpha);
+//                                    return;
+//                                }
+//                            }
+                            if (check(root, image, records, x, y, properties, isAlpha)) {
+                                return;
                             }
                         }
                     }
-                } else if (directionX < 0 && directionY > 0) {
+                } else if (!isDirectionRight() && isDirectionDown()) {
                     for (int y = 0; y < height; y++) {
                         for (int x = width - 1; x >= 0; x--) {
-                            if (!records[x][y]) {
-                                if (check(root, image, records, x, y)) {
-                                    update(root, image, records, x, y, properties, isAlpha);
-                                    return;
-                                }
+//                            if (!records[x][y]) {
+//                                if (check(root, image, records, x, y)) {
+//                                    update(root, image, records, x, y, properties, isAlpha);
+//                                    return;
+//                                }
+//                            }
+                            if (check(root, image, records, x, y, properties, isAlpha)) {
+                                return;
                             }
                         }
                     }
-                } else if (directionX < 0 && directionY < 0) {
+                } else if (!isDirectionRight() && !isDirectionDown()) {
                     for (int y = height - 1; y >= 0; y--) {
                         for (int x = width - 1; x >= 0; x--) {
-                            if (!records[x][y]) {
-                                if (check(root, image, records, x, y)) {
-                                    update(root, image, records, x, y, properties, isAlpha);
-                                    return;
-                                }
+//                            if (!records[x][y]) {
+//                                if (check(root, image, records, x, y)) {
+//                                    update(root, image, records, x, y, properties, isAlpha);
+//                                    return;
+//                                }
+//                            }
+                            if (check(root, image, records, x, y, properties, isAlpha)) {
+                                return;
                             }
                         }
                     }
@@ -633,15 +702,62 @@ public class PixelSheet {
         }
     }
 
+    private boolean check(BufferedImage root, BufferedImage image, boolean[][] records, int x, int y, Properties properties, boolean isAlpha) {
+//        if (check(root, image, records, x, y)) {
+//            update(root, image, records, x, y, properties, isAlpha);
+//            return true;
+//        }
+        if (!records[x][y]) {
+            if (check(root, image, records, x, y)) {
+                update(root, image, records, x, y, properties, isAlpha);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void setPackLevel(int packLevel) {
+        if (packLevel == 0) {
+            pack_level = Pack_Level_Normal;
+        } else if (packLevel > 0) {
+            pack_level = Pack_Level_Extreme;
+        } else {
+            pack_level = Pack_Level_None;
+        }
+    }
+
+    public int getPackLevel() {
+        return pack_level;
+    }
+
     private boolean check(BufferedImage root, BufferedImage image, boolean[][] records, int offsetX, int offsetY) {
         if (null != root && null != image && null != records) {
             int width = offsetX + image.getWidth();
             int height = offsetY + image.getHeight();
+            int x_;
+            int y_;
             if (width <= root.getWidth() && height <= root.getHeight()) {
                 for (int x = offsetX; x < width; x++) {
                     for (int y = offsetY; y < height; y++) {
-                        if (records[x][y]) {
-                            return false;
+                        x_ = x - offsetX;
+                        y_ = y - offsetY;
+                        if (getPackLevel() == Pack_Level_None) {
+                            if (records[x][y]) {
+                                return false;
+                            }
+                        } else {
+                            if ((x_ >= 1 && RGBTool.isRGB(image, x_ - 1, y_)) || (x_ < image.getWidth() - 1 && RGBTool.isRGB(image, x_ + 1, y_)) || (y_ >= 1 && RGBTool.isRGB(image, x_, y_ - 1)) || (y_ < image.getHeight() - 1 && RGBTool.isRGB(image, x_, y_ + 1))) {
+                                if (records[x][y]) {
+                                    return false;
+                                }
+                            }
+                            if (getPackLevel() == Pack_Level_Normal) {
+                                if ((x_ >= 1 && y_ >= 1 && RGBTool.isRGB(image, x_ - 1, y_ - 1)) || (x_ < image.getWidth() - 1 && y_ >= 1 && RGBTool.isRGB(image, x_ + 1, y_ - 1)) || (x_ >= 1 && y_ < image.getHeight() - 1 && RGBTool.isRGB(image, x_ - 1, y_ + 1)) || (x_ < image.getWidth() - 1 && y_ < image.getHeight() - 1 && RGBTool.isRGB(image, x_ + 1, y_ + 1))) {
+                                    if (records[x][y]) {
+                                        return false;
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -653,8 +769,8 @@ public class PixelSheet {
 
     private void update(BufferedImage root, BufferedImage image, boolean[][] records, int x, int y, Properties properties, boolean isAlpha) {
         update(root, image, records, x, y, isAlpha);
-        drawImage(root, image, x, y, false);
-        updatePackProperties(properties, image, x, y, false);
+        update(root, image, x, y);
+        update(properties, image, x, y, false);
     }
 
     private void update(BufferedImage root, BufferedImage image, boolean[][] records, int offsetX, int offsetY, boolean isAlpha) {
@@ -679,19 +795,8 @@ public class PixelSheet {
         }
     }
 
-    private void drawImage(BufferedImage root, BufferedImage image, int x, int y, boolean isAlpha) {
+    private void update(BufferedImage root, BufferedImage image, int x, int y) {
         if (null != root && null != image) {
-            if (isAlpha) {
-                int[] bounds = getBounds(image);
-                if (null != bounds) {
-                    int left = bounds[0];
-                    int top = bounds[1];
-                    if (x >= left && y >= top) {
-                        x -= left;
-                        y -= top;
-                    }
-                }
-            }
             Graphics2D graphics2D = root.createGraphics();
             graphics2D.drawImage(image, x, y, null);
             graphics2D.dispose();
@@ -998,7 +1103,7 @@ public class PixelSheet {
                     if (null != image) {
                         arrayList.add(image);
                         Properties prop = new Properties();
-                        updatePackProperties(prop, image, x_, y_, false);
+                        update(prop, image, x_, y_, false);
                         properties.put(index, prop);
                         index++;
                     }
