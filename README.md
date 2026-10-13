@@ -308,6 +308,7 @@ unpackNon功能适用于pack，packPolygon和packPolygonNon产生的图集png解
     * setPackDirection
     * setPackVertical
     * setPackLevel
+    * setPackSize
     * pack
     * pack keep size
     * pack max size
@@ -384,6 +385,14 @@ packPolygonNon设置打包紧凑级别：
 级别0为检测图片透明边界，保持图片之间间隔1像素单位的透明边界（上下左右+4个角落）；
 
 级别1如上，但省去四个角落的间隔。
+
+* setPackSize
+
+```java
+public void setPackSize(int width, int height){}
+```
+
+设置canvas画布尺寸。
 
 * pack
 
