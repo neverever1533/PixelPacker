@@ -420,7 +420,8 @@ public class PixelPacker {
             }
             if (null != dirFile) {
                 String info = suffix_Pack + suffix_Properties + isTrim;
-                BufferedImage image = pack(dirFile.listFiles(), properties, isTrim);
+                File[] array = sort(dirFile.listFiles(), properties);
+                BufferedImage image = pack(array, properties, isTrim);
                 pack(dirFile, image, null, info);
             }
         } else {
@@ -428,6 +429,36 @@ public class PixelPacker {
                 packMaxSize(imageFile, isTrim);
             }
         }
+    }
+
+    private File[] sort(File[] array, Properties properties) {
+        if (null != array && null != properties) {
+            File[] arr = new File[properties.size()];
+            for (int i = 0; i < properties.size(); i++) {
+                Object object = properties.get(i);
+                if (null == object) {
+                    object = properties.get(String.valueOf(i));
+                }
+                if (object instanceof Properties) {
+                    Properties prop = (Properties) object;
+                    Object obj = prop.get(tag_name);
+                    if (null != obj) {
+                        String name = obj.toString();
+                        for (int j = 0; j < array.length; j++) {
+                            File file = array[j];
+                            if (null != file) {
+                                String prefix = getPrefix(file.getName());
+                                if (prefix.equals(name)) {
+                                    arr[i] = file;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return arr;
+        }
+        return array;
     }
 
     private BufferedImage pack(File[] array, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight, boolean isTrim) {
