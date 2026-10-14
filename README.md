@@ -282,6 +282,24 @@ unpackNon(file, propFile, false);
 
 unpackNon功能适用于pack，packPolygon和packPolygonNon产生的图集png解包。
 
+7. setting :
+* 7.1 setPackVertical
+* 7.2 setPackDirection
+* 7.3 setPackLevel
+
+```java
+        PixelPacker packer = new PixelPacker();
+        packer.setPackVertical(PixelSheet.Is_Pack_Horizontal);
+        packer.setPackDirection(PixelSheet.Direction_Right, PixelSheet.Direction_Left);
+        packer.setPackLevel(PixelSheet.Pack_Level_Extreme);
+        packer.setPackSize(256, 256);
+        packer.packPolygonNon(packImageFile, false);
+```
+
+![image](https://github.com/neverever1533/PixelPacker/blob/main/sheets_pack_polygon_non_4.png)
+
+如图，设置横向setPackVertical(false)，以从左到右和从下到上的顺序，画布设置256*256像素，极致打包后的结果。
+
 <a id="method"></a>
 
 ## 方法 （Method）：
