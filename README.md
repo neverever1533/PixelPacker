@@ -392,7 +392,7 @@ public void setPackLevel(int packLevel) {}
 ---
 tips：功能实现优先，性能优化待候。（暂时）
 
-所以使用紧凑打包时，请限制画布尺寸为1024*1024以内，以及限制源图片的尺寸最大为256像素左右。（仅packPolygon和packPolygonNon受影响，使用带有json属性文件的pack(file, propFile, isTrim)打包时不受尺寸影响。）
+所以使用紧凑打包时，请限制画布尺寸为1024*1024以内，以及限制源图片的尺寸最大为256像素左右。（仅packPolygon和packPolygonNon受影响，使用带有json属性文件的pack(imageFile, propFile, isTrim)打包时不受尺寸影响。）
 
 ---
 
@@ -527,7 +527,7 @@ public void pack(File imageFile, File propFile, boolean isTrim) {}
 public void pack(File imageFile, Properties properties, boolean isTrim) {}
 ```
 
-扫描文件夹（若配置文件内有路径，第一项可设为null），按照配置信息打包图片为图集。
+扫描文件夹（若配置文件内有路径，第一项可设为null），按照配置信息打包图片为图集，propFile可选json或者xml文件。
 
 <p align="right">(<a href="#pack-all">回到打包 （back to pack）</a>)</p>
 
