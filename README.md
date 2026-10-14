@@ -402,7 +402,7 @@ public void setPackDirection(int directionX, int directionY) {}
 public void setPackVertical(boolean isPackVertical) {}
 ```
 
-打包图集顺序默认为纵向，isPackVertical为false则横向排列打包。
+打包图集顺序默认为横向，isPackVertical为false则横向排列打包。
 
 以上排序，pack、packPolygon和packPolygonNon现已全部支持。
 
