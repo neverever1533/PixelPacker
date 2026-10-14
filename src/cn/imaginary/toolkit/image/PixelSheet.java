@@ -408,11 +408,11 @@ public class PixelSheet {
             properties.put(tag_bounds_y, y);
             properties.put(tag_bounds_width, image.getWidth());
             properties.put(tag_bounds_height, image.getHeight());
-            updatePackProperties(properties, image, getCheckStyle());
+            update(properties, image, getCheckStyle());
         }
     }
 
-    private void updatePackProperties(Properties properties, BufferedImage image, int areaStyle) {
+    private void update(Properties properties, BufferedImage image, int areaStyle) {
     }
 
     public BufferedImage pack(BufferedImage[] array, Properties properties, boolean isTrim) {
@@ -657,6 +657,7 @@ public class PixelSheet {
     private boolean check(BufferedImage root, BufferedImage image, boolean[][] records, int x, int y, Properties properties, boolean isAlpha) {
         if (!records[x][y]) {
             if (check(root, image, records, x, y)) {
+//                System.out.println("2 ps660 check");
                 update(root, image, records, x, y, properties, isAlpha);
                 return true;
             }
@@ -678,33 +679,36 @@ public class PixelSheet {
         return pack_level;
     }
 
+    private boolean check(BufferedImage image, int x, int y, int packLevel) {
+        if (null != image) {
+            if (packLevel == Pack_Level_None ||
+                    (packLevel == Pack_Level_Extreme &&
+                            ((x >= 1 && RGBTool.isRGB(image, x - 1, y)) || (x < image.getWidth() - 1 && RGBTool.isRGB(image, x + 1, y)) ||
+                                    (y >= 1 && RGBTool.isRGB(image, x, y - 1)) || (y < image.getHeight() - 1 && RGBTool.isRGB(image, x, y + 1)))) ||
+                    (packLevel == Pack_Level_Normal &&
+                            ((x >= 1 && RGBTool.isRGB(image, x - 1, y)) || (x < image.getWidth() - 1 && RGBTool.isRGB(image, x + 1, y)) ||
+                                    (y >= 1 && RGBTool.isRGB(image, x, y - 1)) || (y < image.getHeight() - 1 && RGBTool.isRGB(image, x, y + 1)) ||
+                                    (x >= 1 && y >= 1 && RGBTool.isRGB(image, x - 1, y - 1)) || (x < image.getWidth() - 1 && y >= 1 && RGBTool.isRGB(image, x + 1, y - 1)) ||
+                                    (x >= 1 && y < image.getHeight() - 1 && RGBTool.isRGB(image, x - 1, y + 1)) || (x < image.getWidth() - 1 && y < image.getHeight() - 1 && RGBTool.isRGB(image, x + 1, y + 1))))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private boolean check(BufferedImage root, BufferedImage image, boolean[][] records, int offsetX, int offsetY) {
         if (null != root && null != image && null != records) {
-            int width = offsetX + image.getWidth();
-            int height = offsetY + image.getHeight();
             int x_;
             int y_;
-            if (width <= root.getWidth() && height <= root.getHeight()) {
-                for (int x = offsetX; x < width; x++) {
-                    for (int y = offsetY; y < height; y++) {
-                        x_ = x - offsetX;
-                        y_ = y - offsetY;
-                        if (getPackLevel() == Pack_Level_None) {
-                            if (records[x][y]) {
+//            System.out.println("1 ps703 check:" + isDirectionRight() + "/" + isDirectionDown());
+            if (offsetX + image.getWidth() <= root.getWidth() && offsetY + image.getHeight() <= root.getHeight()) {
+                for (int x = 0; x < image.getWidth(); x++) {
+                    for (int y = 0; y < image.getHeight(); y++) {
+                        x_ = offsetX + x;
+                        y_ = offsetY + y;
+                        if (check(image, x, y, getPackLevel())) {
+                            if (records[x_][y_]) {
                                 return false;
-                            }
-                        } else {
-                            if ((x_ >= 1 && RGBTool.isRGB(image, x_ - 1, y_)) || (x_ < image.getWidth() - 1 && RGBTool.isRGB(image, x_ + 1, y_)) || (y_ >= 1 && RGBTool.isRGB(image, x_, y_ - 1)) || (y_ < image.getHeight() - 1 && RGBTool.isRGB(image, x_, y_ + 1))) {
-                                if (records[x][y]) {
-                                    return false;
-                                }
-                            }
-                            if (getPackLevel() == Pack_Level_Normal) {
-                                if ((x_ >= 1 && y_ >= 1 && RGBTool.isRGB(image, x_ - 1, y_ - 1)) || (x_ < image.getWidth() - 1 && y_ >= 1 && RGBTool.isRGB(image, x_ + 1, y_ - 1)) || (x_ >= 1 && y_ < image.getHeight() - 1 && RGBTool.isRGB(image, x_ - 1, y_ + 1)) || (x_ < image.getWidth() - 1 && y_ < image.getHeight() - 1 && RGBTool.isRGB(image, x_ + 1, y_ + 1))) {
-                                    if (records[x][y]) {
-                                        return false;
-                                    }
-                                }
                             }
                         }
                     }
@@ -716,31 +720,44 @@ public class PixelSheet {
     }
 
     private void update(BufferedImage root, BufferedImage image, boolean[][] records, int x, int y, Properties properties, boolean isAlpha) {
-        update(root, image, records, x, y, isAlpha);
-        update(root, image, x, y);
-        update(properties, image, x, y, false);
+        if (update(root, image, records, x, y, isAlpha)) {
+//            System.out.println("4 ps811 check");
+            update(root, image, x, y);
+            update(properties, image, x, y, false);
+        }
     }
 
-    private void update(BufferedImage root, BufferedImage image, boolean[][] records, int offsetX, int offsetY, boolean isAlpha) {
-        if (null != root && null != image && null != records) {
-            int width = offsetX + image.getWidth();
-            int height = offsetY + image.getHeight();
-            if (width <= root.getWidth() && height <= root.getHeight()) {
-                for (int x = offsetX; x < width; x++) {
-                    for (int y = offsetY; y < height; y++) {
-                        if (!records[x][y]) {
-                            if (isAlpha) {
-                                if (RGBTool.isRGB(image, x - offsetX, y - offsetY)) {
-                                    records[x][y] = true;
-                                }
-                            } else {
-                                records[x][y] = true;
-                            }
-                        }
+    private void update(BufferedImage image, boolean[][] records, int x, int y, int offsetX, int offsetY, boolean isAlpha) {
+        if (null != image && null != records) {
+            if (!records[offsetX][offsetY]) {
+                if (isAlpha) {
+                    if (RGBTool.isRGB(image, x, y)) {
+                        records[offsetX][offsetY] = true;
                     }
+                } else {
+                    records[offsetX][offsetY] = true;
                 }
             }
         }
+    }
+
+    private boolean update(BufferedImage root, BufferedImage image, boolean[][] records, int offsetX, int offsetY, boolean isAlpha) {
+        if (null != root && null != image && null != records) {
+//            System.out.println("3 ps819 update");
+            int x_;
+            int y_;
+            if (offsetX + image.getWidth() <= root.getWidth() && offsetY + image.getHeight() <= root.getHeight()) {
+                for (int x = 0; x < image.getWidth(); x++) {
+                    for (int y = 0; y < image.getHeight(); y++) {
+                        x_ = offsetX + x;
+                        y_ = offsetY + y;
+                        update(image, records, x, y, x_, y_, isAlpha);
+                    }
+                }
+                return true;
+            }
+        }
+        return false;
     }
 
     private void update(BufferedImage root, BufferedImage image, int x, int y) {
@@ -759,6 +776,7 @@ public class PixelSheet {
                 if (null != image) {
                     arrayList.add(image);
                 }
+                System.out.println("unpack:" + ((double) (i + 1) / properties.size()) * 100 + "%");
             }
             return arrayList;
         }
