@@ -378,13 +378,23 @@ public void setPackVertical(boolean isPackVertical) {}
 public void setPackLevel(int packLevel) {}
 ```
 
-packPolygonNon设置打包紧凑级别：
+使用packPolygonNon()时，setPackLevel()设置级别：
 
-级别-1为不处理待写入图片（默认）；
+* 级别-1：
+不处理待写入图片（默认）；
 
-级别0为检测图片透明边界，保持图片之间间隔1像素单位的透明边界（上下左右+4个角落）；
+* 级别0：
+检测图片透明边界，保持图片之间间隔1像素单位的透明边界（上下左右+4个角落）；
 
-级别1如上，但省去四个角落的间隔。
+* 级别1：
+如上，但省去四个角落的间隔。
+
+---
+tips：功能实现优先，性能优化待候。（暂时）
+
+所以使用紧凑打包时，请限制画布尺寸为1024*1024以内，以及限制源图片的尺寸最大为256像素左右。（仅packPolygon和packPolygonNon受影响，使用带有json属性文件的pack(file, propFile, isTrim)打包时不受尺寸影响。）
+
+---
 
 * setPackSize
 
