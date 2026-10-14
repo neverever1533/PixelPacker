@@ -292,7 +292,7 @@ unpackNon功能适用于pack，packPolygon和packPolygonNon产生的图集png解
 ```java
 PixelPacker packer = new PixelPacker();
 packer.setPackVertical(PixelSheet.Is_Pack_Horizontal);
-packer.setPackDirection(PixelSheet.Direction_Right, PixelSheet.Direction_Left);
+packer.setPackDirection(PixelSheet.Direction_Right, PixelSheet.Direction_Up);
 packer.setPackLevel(PixelSheet.Pack_Level_Extreme);
 packer.setPackSize(256, 256);
 packer.packPolygonNon(packImageFile, false);
