@@ -287,6 +287,8 @@ unpackNon功能适用于pack，packPolygon和packPolygonNon产生的图集png解
 * 7.2 setPackDirection
 * 7.3 setPackLevel
 
+对于packPolygon：
+
 ```java
 PixelPacker packer = new PixelPacker();
 packer.setPackVertical(PixelSheet.Is_Pack_Horizontal);
@@ -299,6 +301,20 @@ packer.packPolygonNon(packImageFile, false);
 ![image](https://github.com/neverever1533/PixelPacker/blob/main/sheets_pack_polygon_non_4.png)
 
 如图，设置横向setPackVertical(false)，以从左到右和从下到上的顺序，画布设置256*256像素，极致打包后的结果。
+
+---
+
+对于pack：
+
+```java
+packer.setPackVertical(true);
+packer.packMaxSize(file, false);
+```
+
+![image](https://github.com/neverever1533/PixelPacker/blob/main/sheets_pack_max_3x3_1.png)
+
+如图，设置纵向，以默认xy轴方向顺序，packMaxSize(file, false)打包后的图集结果。
+
 
 <a id="method"></a>
 
@@ -388,7 +404,7 @@ public void setPackVertical(boolean isPackVertical) {}
 
 打包图集顺序默认为纵向，isPackVertical为false则横向排列打包。
 
-以上暂时packPolygon和packPolygonNon支持。
+以上排序，pack、packPolygon和packPolygonNon现已全部支持。
 
 * setPackLevel
 
@@ -583,7 +599,7 @@ public void unpackPolygon(File file, boolean isTrim) {}
 public void unpackPolygon(File file, int width, int height, boolean isTrim) {}
 ```
 
-读取图片文件，解包图片中的非透明部分的像素块，然后分割并存储为多个图片。（本功能代码暂不开源，若有需求可以向我申请使用，务必提供原图的版权拥有证明！）
+读取图片文件，解包图片中的非透明部分的像素块，然后分割并存储为多个图片。（本功能代码暂不开源，若有需求可以向我申请使用，为避免后续的一切版权纠纷问题，请务必提供图源的个人版权拥有证明！）
 
 
 <a id="unpack-properties"></a>
