@@ -34,7 +34,8 @@ public class PixelSheet {
     public static int Pack_Level_Normal = 0;
     public static int Pack_Level_Extreme = 1;
 
-    private boolean is_pack_vertical = Is_Pack_Vertical;
+//    private boolean is_pack_vertical = Is_Pack_Vertical;
+    private boolean is_pack_vertical = Is_Pack_Horizontal;
     private boolean is_direction_right = Is_Direction_Right;
     private boolean is_direction_down = Is_Direction_Down;
 
@@ -45,7 +46,7 @@ public class PixelSheet {
     private int area_style = 1;
     private int pack_level = Pack_Level_None;
 
-    private RGBTool RGBTool = new RGBTool();
+    private RGBTool rgbTool = new RGBTool();
 
     private Properties properties_pack;
     private Properties properties_unpack;
@@ -77,7 +78,7 @@ public class PixelSheet {
         properties_unpack = properties;
     }
 
-    private void updatePackProperties(Properties properties, int x, int y) {
+    private void update(Properties properties, int x, int y) {
         if (null == properties) {
             properties = getPackProperties();
         }
@@ -88,7 +89,7 @@ public class PixelSheet {
                 Object value = properties.get(key);
                 if (key instanceof Integer) {
                     if (value instanceof Properties) {
-                        updatePackProperties((Properties) value, x, y);
+                        update((Properties) value, x, y);
                     }
                 } else {
                     if (key.equals(tag_bounds_x)) {
@@ -109,7 +110,7 @@ public class PixelSheet {
             int y_max = -1;
             for (int x = 0; x < image.getWidth(); x++) {
                 for (int y = 0; y < image.getHeight(); y++) {
-                    if (RGBTool.isRGB(image, x, y)) {
+                    if (rgbTool.isRGB(image, x, y)) {
                         if (x_min == -1) {
                             x_min = x;
                         }
@@ -263,32 +264,32 @@ public class PixelSheet {
     public BufferedImage pack(BufferedImage[] array, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight, boolean isTrim) {
         if (null != array) {
             updateImage(array, isTrim);
+            if (lineSize <= 0) {
+                if (rowSize <= 0) {
+                    double size_sqrt = Math.sqrt(array.length);
+                    int size = (int) size_sqrt;
+                    if (size != size_sqrt) {
+                        size += 1;
+                    }
+                    lineSize = size;
+                    rowSize = size;
+                } else {
+                    lineSize = array.length / rowSize;
+                }
+            } else {
+                if (rowSize <= 0) {
+                    rowSize = array.length / lineSize;
+                }
+            }
             Dimension canvas = getPackSize();
             if (null == canvas) {
-                if (lineSize <= 0) {
-                    if (rowSize <= 0) {
-                        double size_sqrt = Math.sqrt(array.length);
-                        int size = (int) size_sqrt;
-                        if (size != size_sqrt) {
-                            size += 1;
-                        }
-                        lineSize = size;
-                        rowSize = size;
-                    } else {
-                        lineSize = array.length / rowSize;
-                    }
-                } else {
-                    if (rowSize <= 0) {
-                        rowSize = array.length / lineSize;
-                    }
-                }
                 canvas = getSize(array, width, height, lineSize, rowSize, lineWidth, rowHeight);
             }
             if (null != canvas) {
                 BufferedImage image = new BufferedImage(canvas.width, canvas.height, BufferedImage.TYPE_INT_ARGB);
                 pack(image, array, width, height, lineSize, rowSize, lineWidth, rowHeight);
                 if (x != 0 || y != 0) {
-                    updatePackProperties(getPackProperties(), x, y);
+                    update(getPackProperties(), x, y);
                     return drawImage(image, x, y);
                 } else {
                     return image;
@@ -326,37 +327,136 @@ public class PixelSheet {
             if (height > h_max) {
                 h_max = height;
             }
+//            System.out.println("ps330 pack info:" + width + "/" + height + "/" + lineSize + "/" + rowSize + "/" + lineWidth + "/" + rowHeight);
             Properties properties = new Properties();
             Graphics2D graphics2D = root.createGraphics();
-            for (int i = 0; i < array.length; i++) {
-                BufferedImage image = array[i];
-                if (null != image) {
-                    int w;
-                    int h;
-                    if (width == 0) {
-                        w = image.getWidth();
-                    } else {
-                        w = width;
+            int index = 0;
+            if (isPackVertical()) {
+                if (isDirectionRight() && isDirectionDown()) {
+                    for (int i = 0; i < lineSize; i++) {
+                        for (int j = 0; j < rowSize; j++) {
+                            if (index < array.length) {
+                                drawImage(graphics2D, array[index], width, height, i, j, lineWidth, rowHeight, w_max, h_max, properties);
+                                System.out.println("pack:" + ((double) (index + 1) / array.length) * 100 + "%");
+                            } else {
+                                break;
+                            }
+                            index++;
+                        }
                     }
-                    if (height == 0) {
-                        h = image.getHeight();
-                    } else {
-                        h = height;
+                } else if (isDirectionRight() && !isDirectionRight()) {
+                    for (int i = 0; i < lineSize; i++) {
+                        for (int j = rowSize - 1; j >= 0; j--) {
+                            if (index < array.length) {
+                                drawImage(graphics2D, array[index], width, height, i, j, lineWidth, rowHeight, w_max, h_max, properties);
+                                System.out.println("pack:" + ((double) (index + 1) / array.length) * 100 + "%");
+                            } else {
+                                break;
+                            }
+                            index++;
+                        }
                     }
-                    int line = i % lineSize;
-                    int row = i / lineSize;
-                    if (row >= rowSize) {
-                        break;
+                } else if (!isDirectionRight() && isDirectionRight()) {
+                    for (int i = lineSize - 1; i >= 0; i--) {
+                        for (int j = 0; j < rowSize; j++) {
+                            if (index < array.length) {
+                                drawImage(graphics2D, array[index], width, height, i, j, lineWidth, rowHeight, w_max, h_max, properties);
+                                System.out.println("pack:" + ((double) (index + 1) / array.length) * 100 + "%");
+                            } else {
+                                break;
+                            }
+                            index++;
+                        }
                     }
-                    int x = line * (w_max + lineWidth);
-                    int y = row * (h_max + rowHeight);
-                    Properties prop = new Properties();
-                    drawImage(graphics2D, image, x, y, w, h, prop);
-                    properties.put(i, prop);
+                } else if (!isDirectionRight() && !isDirectionRight()) {
+                    for (int i = lineSize - 1; i >= 0; i--) {
+                        for (int j = rowSize - 1; j >= 0; j--) {
+                            if (index < array.length) {
+                                drawImage(graphics2D, array[index], width, height, i, j, lineWidth, rowHeight, w_max, h_max, properties);
+                                System.out.println("pack:" + ((double) (index + 1) / array.length) * 100 + "%");
+                            } else {
+                                break;
+                            }
+                            index++;
+                        }
+                    }
+                }
+            } else {
+                if (isDirectionRight() && isDirectionDown()) {
+                    for (int j = 0; j < rowSize; j++) {
+                        for (int i = 0; i < lineSize; i++) {
+                            if (index < array.length) {
+                                drawImage(graphics2D, array[index], width, height, i, j, lineWidth, rowHeight, w_max, h_max, properties);
+                                System.out.println("pack:" + ((double) (index + 1) / array.length) * 100 + "%");
+                            } else {
+                                break;
+                            }
+                            index++;
+                        }
+                    }
+                } else if (isDirectionRight() && !isDirectionRight()) {
+                    for (int j = rowSize - 1; j >= 0; j--) {
+                        for (int i = 0; i < lineSize; i++) {
+                            if (index < array.length) {
+                                drawImage(graphics2D, array[index], width, height, i, j, lineWidth, rowHeight, w_max, h_max, properties);
+                                System.out.println("pack:" + ((double) (index + 1) / array.length) * 100 + "%");
+                            } else {
+                                break;
+                            }
+                            index++;
+                        }
+                    }
+                } else if (!isDirectionRight() && isDirectionRight()) {
+                    for (int j = 0; j < rowSize; j++) {
+                        for (int i = lineSize - 1; i >= 0; i--) {
+                            if (index < array.length) {
+                                drawImage(graphics2D, array[index], width, height, i, j, lineWidth, rowHeight, w_max, h_max, properties);
+                                System.out.println("pack:" + ((double) (index + 1) / array.length) * 100 + "%");
+                            } else {
+                                break;
+                            }
+                            index++;
+                        }
+                    }
+                } else if (!isDirectionRight() && !isDirectionRight()) {
+                    for (int j = rowSize - 1; j >= 0; j--) {
+                        for (int i = lineSize - 1; i >= 0; i--) {
+                            if (index < array.length) {
+                                drawImage(graphics2D, array[index], width, height, i, j, lineWidth, rowHeight, w_max, h_max, properties);
+                                System.out.println("pack:" + ((double) (index + 1) / array.length) * 100 + "%");
+                            } else {
+                                break;
+                            }
+                            index++;
+                        }
+                    }
                 }
             }
             graphics2D.dispose();
             setPackProperties(properties);
+        }
+    }
+
+    private void drawImage(Graphics2D graphics2D, BufferedImage image, int width, int height, int i, int j, int lineWidth, int rowHeight, int maxWidth, int maxHeight, Properties properties) {
+        if (null != graphics2D && null != image && null != properties) {
+            int w;
+            int h;
+            int x = i * (maxWidth + lineWidth);
+            int y = j * (maxHeight + rowHeight);
+            if (width == 0) {
+                w = image.getWidth();
+            } else {
+                w = width;
+            }
+            if (height == 0) {
+                h = image.getHeight();
+            } else {
+                h = height;
+            }
+//            System.out.println("x/y:" + x + "/" + y);
+            Properties prop = new Properties();
+            drawImage(graphics2D, image, x, y, w, h, prop);
+            properties.put(i, prop);
         }
     }
 
@@ -683,13 +783,13 @@ public class PixelSheet {
         if (null != image) {
             if (packLevel == Pack_Level_None ||
                     (packLevel == Pack_Level_Extreme &&
-                            ((x >= 1 && RGBTool.isRGB(image, x - 1, y)) || (x < image.getWidth() - 1 && RGBTool.isRGB(image, x + 1, y)) ||
-                                    (y >= 1 && RGBTool.isRGB(image, x, y - 1)) || (y < image.getHeight() - 1 && RGBTool.isRGB(image, x, y + 1)))) ||
+                            ((x >= 1 && rgbTool.isRGB(image, x - 1, y)) || (x < image.getWidth() - 1 && rgbTool.isRGB(image, x + 1, y)) ||
+                                    (y >= 1 && rgbTool.isRGB(image, x, y - 1)) || (y < image.getHeight() - 1 && rgbTool.isRGB(image, x, y + 1)))) ||
                     (packLevel == Pack_Level_Normal &&
-                            ((x >= 1 && RGBTool.isRGB(image, x - 1, y)) || (x < image.getWidth() - 1 && RGBTool.isRGB(image, x + 1, y)) ||
-                                    (y >= 1 && RGBTool.isRGB(image, x, y - 1)) || (y < image.getHeight() - 1 && RGBTool.isRGB(image, x, y + 1)) ||
-                                    (x >= 1 && y >= 1 && RGBTool.isRGB(image, x - 1, y - 1)) || (x < image.getWidth() - 1 && y >= 1 && RGBTool.isRGB(image, x + 1, y - 1)) ||
-                                    (x >= 1 && y < image.getHeight() - 1 && RGBTool.isRGB(image, x - 1, y + 1)) || (x < image.getWidth() - 1 && y < image.getHeight() - 1 && RGBTool.isRGB(image, x + 1, y + 1))))) {
+                            ((x >= 1 && rgbTool.isRGB(image, x - 1, y)) || (x < image.getWidth() - 1 && rgbTool.isRGB(image, x + 1, y)) ||
+                                    (y >= 1 && rgbTool.isRGB(image, x, y - 1)) || (y < image.getHeight() - 1 && rgbTool.isRGB(image, x, y + 1)) ||
+                                    (x >= 1 && y >= 1 && rgbTool.isRGB(image, x - 1, y - 1)) || (x < image.getWidth() - 1 && y >= 1 && rgbTool.isRGB(image, x + 1, y - 1)) ||
+                                    (x >= 1 && y < image.getHeight() - 1 && rgbTool.isRGB(image, x - 1, y + 1)) || (x < image.getWidth() - 1 && y < image.getHeight() - 1 && rgbTool.isRGB(image, x + 1, y + 1))))) {
                 return true;
             }
         }
@@ -731,7 +831,7 @@ public class PixelSheet {
         if (null != image && null != records) {
             if (!records[offsetX][offsetY]) {
                 if (isAlpha) {
-                    if (RGBTool.isRGB(image, x, y)) {
+                    if (rgbTool.isRGB(image, x, y)) {
                         records[offsetX][offsetY] = true;
                     }
                 } else {
