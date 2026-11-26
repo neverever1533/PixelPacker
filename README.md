@@ -104,7 +104,7 @@ Pack and Unpack images for the Sprite sheets.
 }
 ```
 
-或（旧版）
+或（旧版）：
 
 ```json
 {
@@ -298,6 +298,13 @@ packer.setPackSize(256, 256);
 packer.packPolygonNon(packImageFile, false);
 ```
 
+or:
+
+```java
+File[] array = packImageFile.getParentFile.listFiles();
+packer.packPolygonNon(array, false);
+```
+
 ![image](https://github.com/neverever1533/PixelPacker/blob/main/sheets_pack_polygon_non_4.png)
 
 如图，设置横向setPackVertical(false)，以从左到右和从下到上的顺序，画布设置256*256像素，极致打包后的结果。
@@ -314,6 +321,15 @@ packer.packMaxSize(file, false);
 ![image](https://github.com/neverever1533/PixelPacker/blob/main/sheets_pack_max_3x3_1.png)
 
 如图，设置纵向，以默认xy轴方向顺序，packMaxSize(file, false)打包后的图集结果。
+
+8. drawImage:
+
+```java
+File[] array = packImageFile.getParentFile.listFiles();
+pack(rootImage, array, propFile);
+```
+
+将多张子图绘制到图集当中。
 
 
 <a id="method"></a>
@@ -440,9 +456,40 @@ public void setPackSize(int width, int height){}
 
 * pack
 
+打包：
+
 ```java
 public void pack(File file, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight, boolean isTrim) {}
 ```
+
+or:
+
+```java
+public void pack(File[] array, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight, boolean isTrim) {}
+```
+
+扫描文件夹，或选择多个文件，按行数列数行间隔和列间隔打包多个图片文件为图集。
+packKeepSize()，packMaxSize()，packLine...()，packRow...()等皆调用此方法。
+
+绘制单张：
+
+```java
+public void pack(File rootImageFile, File imageFile, int x, int y){}
+```
+
+or:
+
+```java
+public void pack(File rootImageFile, File imageFile, File propFile){}
+```
+
+绘制多张:
+
+```java
+public void pack(File rootImageFile, File[] array, File propFile){}
+```
+
+根据坐标(x, y)或json文件参数，将单张或多张子图绘制到图集当中。
 
 * pack keep size
 
@@ -452,6 +499,16 @@ public void packKeepSize(File file, boolean isTrim) {}
 
 ```java
 public void packKeepSize(File file, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {}
+```
+
+or:
+
+```java
+public void packKeepSize(File[] array, boolean isTrim) {}
+```
+
+```java
+public void packKeepSize(File[] array, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {}
 ```
 
 * pack max size
@@ -464,7 +521,17 @@ public void packMaxSize(File file, boolean isTrim) {}
 public void packMaxSize(File file, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {}
 ```
 
-扫描文件夹（若选择文件，则扫描文件所在文件夹，pack的所有方法类同），将多个图片按照参数打包为指定行数和列数的图集。
+or:
+
+```java
+public void packMaxSize(File[] array, boolean isTrim) {}
+```
+
+```java
+public void packMaxSize(File[] array, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {}
+```
+
+扫描文件夹（若选择文件，则扫描文件所在文件夹，pack的所有方法类同），或选择多个文件，将多个图片按照参数打包为指定行数和列数的图集。
 
 packKeepSize(file, isTrim)和packMaxSize(file, isTrim)中，默认行列均为-1，行列间隔均为0，统一尺寸为所有图片中的最大尺寸，按图片数量自动计算行列，最终打包为正方形图集。
 
@@ -482,6 +549,16 @@ public void packLineKeepSize(File file, boolean isTrim) {}
 public void packLineKeepSize(File file, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {}
 ```
 
+or:
+
+```java
+public void packLineKeepSize(File[] array, boolean isTrim) {}
+```
+
+```java
+public void packLineKeepSize(File[] array, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {}
+```
+
 * pack line max size
 
 ```java
@@ -492,7 +569,17 @@ public void packLineMaxSize(File file, boolean isTrim) {}
 public void packLineMaxSize(File file, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {}
 ```
 
-扫描文件夹，默认打包为一行图集。
+or:
+
+```java
+public void packLineMaxSize(File[] array, boolean isTrim) {}
+```
+
+```java
+public void packLineMaxSize(File[] array, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {}
+```
+
+扫描文件夹，或选择多个文件，默认打包为一行图集。
 
 
 <a id="pack-row"></a>
@@ -500,6 +587,16 @@ public void packLineMaxSize(File file, int x, int y, int lineWidth, int rowHeigh
 #### 3. 打包列 （Pack Row）：
 
 * pack row keep size
+
+```java
+public void packRowKeepSize(File file, boolean isTrim) {}
+```
+
+```java
+public void packRowKeepSize(File file, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {}
+```
+
+or:
 
 ```java
 public void packRowKeepSize(File file, boolean isTrim) {}
@@ -519,7 +616,17 @@ public void packRowMaxSize(File file, boolean isTrim) {}
 public void packRowMaxSize(File file, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {}
 ```
 
-扫描文件夹，默认打包为一列图集。
+or:
+
+```java
+public void packRowMaxSize(File[] array, boolean isTrim) {}
+```
+
+```java
+public void packRowMaxSize(File[] array, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {}
+```
+
+扫描文件夹，或选择多个文件，默认打包为一列图集。
 
 
 <a id="pack-polygon"></a>
@@ -534,7 +641,13 @@ public void packRowMaxSize(File file, int x, int y, int lineWidth, int rowHeight
 public void packPolygon(File file, boolean isTrim) {}
 ```
 
-扫描文件夹，以图片次序，填充图块后打包为图集。
+or:
+
+```java
+public void packPolygon(File[] array, boolean isTrim) {}
+```
+
+扫描文件夹，或选择多个文件，以图片次序，填充图块后打包为图集。
 
 ##### 4.2 混合打包（PackPolygonNon）
 
@@ -544,7 +657,13 @@ public void packPolygon(File file, boolean isTrim) {}
 public void packPolygonNon(File file, boolean isTrim) {}
 ```
 
-扫描文件夹，以图片次序，画布检测透明空间，填充图块后打包为图集。（适用于非封闭、不连贯、或异形图块紧密打包。）
+or:
+
+```java
+public void packPolygonNon(File[] array, boolean isTrim) {}
+```
+
+扫描文件夹，或选择多个文件，以图片次序，画布检测透明空间，填充图块后打包为图集。（适用于非封闭、不连贯、或异形图块紧密打包。）
 
 
 <a id="pack-properties"></a>
@@ -561,7 +680,17 @@ public void pack(File imageFile, File propFile, boolean isTrim) {}
 public void pack(File imageFile, Properties properties, boolean isTrim) {}
 ```
 
-扫描文件夹（若配置文件内有路径，第一项可设为null），按照配置信息打包图片为图集，propFile可选json或者xml文件。
+or:
+
+```java
+public void pack(File[] array, File propFile, boolean isTrim) {}
+```
+
+```java
+public void pack(File[] array, Properties properties, boolean isTrim) {}
+```
+
+扫描文件夹（若配置文件内有路径，第一项可设为null），或选择多个文件，按照配置信息打包图片为图集，propFile可选json或者xml文件。
 
 <p align="right">(<a href="#pack-all">回到打包 （back to pack）</a>)</p>
 
