@@ -53,7 +53,7 @@ public class PixelPacker {
 
     private PixelSheet pixelSheet = new PixelSheet();
 
-    private String readString(File file) {
+    public String readString(File file) {
         if (null != file) {
             try {
                 BufferedReader reader = new BufferedReader(new FileReader(file));
@@ -117,7 +117,7 @@ public class PixelPacker {
         return null;
     }
 
-    private void writeString(String string, File file) {
+    public void writeString(String string, File file) {
         if (null != string) {
             try {
                 BufferedWriter writer = new BufferedWriter(new FileWriter(file));
@@ -365,12 +365,20 @@ public class PixelPacker {
                 dirFile = file;
             }
             if (null != dirFile) {
-                File[] array = dirFile.listFiles();
-                BufferedImage image = pack(array, x, y, width, height, lineSize, rowSize, lineWidth, rowHeight, isTrim);
-                String info = suffix_Pack + x + y + width + height + lineSize + rowSize + lineWidth + rowHeight + isTrim;
-                Properties properties = pixelSheet.getPackProperties();
-                updateProperties(properties, array);
-                pack(dirFile, image, properties, info);
+                pack(dirFile.listFiles(), x, y, width, height, lineSize, rowSize, lineWidth, rowHeight, isTrim);
+            }
+        }
+    }
+
+    public void pack(File[] array, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight, boolean isTrim) {
+        if (null != array) {
+            BufferedImage image = packTool(array, x, y, width, height, lineSize, rowSize, lineWidth, rowHeight, isTrim);
+            String info = suffix_Pack + x + y + width + height + lineSize + rowSize + lineWidth + rowHeight + isTrim;
+            Properties properties = pixelSheet.getPackProperties();
+            updateProperties(properties, array);
+            File file = array[0];
+            if (null != file) {
+                pack(file.getParentFile().getAbsolutePath(), image, properties, info);
             }
         }
     }
@@ -391,16 +399,96 @@ public class PixelPacker {
         }
     }
 
-    private void pack(File dirFile, BufferedImage image, Properties properties, String info) {
-        if (null != dirFile && null != image && null != info) {
-            String path = dirFile.getAbsolutePath();
-            String imagePath = path + info + suffix_Png;
+    private void pack(String filePath, BufferedImage image, Properties properties, String info) {
+        if (null != filePath && null != image && null != info) {
+            String imagePath = filePath + info + suffix_Png;
             write(image, new File(imagePath));
-            String propPath = path + info + suffix_Json;
+            String propPath = filePath + info + suffix_Json;
             if (null != properties) {
                 writeProperties(properties, new File(propPath));
             }
         }
+    }
+
+    public void pack(File imageFile, File[] array, File propFile) {
+        pack(imageFile, array, readProperties(propFile));
+    }
+
+    public void pack(File imageFile, File[] array, Properties properties) {
+        array = sort(array, properties);
+//        System.out.println("pp426:" + array.length);
+        BufferedImage image = pack(imageFile, toList(array), properties);
+        String info = suffix_Pack + suffix_Properties;
+        if (null != imageFile) {
+            pack(getPrefix(imageFile.getAbsolutePath()), image, null, info);
+        }
+    }
+
+    private BufferedImage pack(File rootImageFile, ArrayList<BufferedImage> arrayList, Properties properties) {
+        return pack(rootImageFile, toArray(arrayList), properties);
+    }
+
+    private BufferedImage pack(File rootImageFile, BufferedImage[] array, Properties properties) {
+        return pixelSheet.pack(read(rootImageFile), array, properties);
+    }
+
+    public void pack(File rootImageFile, File imageFile, File propFile) {
+        pack(rootImageFile, imageFile, readProperties(propFile));
+    }
+
+    public void pack(File rootImageFile, File imageFile, Properties properties) {
+        if (null != properties) {
+//            System.out.println("pp450:" + properties);
+            if (null != imageFile) {
+                Object object = properties.get(tag_name);
+                if (null == object) {
+                    for (int i = 0; i < properties.size(); i++) {
+                        object = properties.get(i);
+                        if (null == object) {
+                            object = properties.get(String.valueOf(i));
+                        }
+                        if (object instanceof Properties) {
+                            Properties prop = (Properties) object;
+                            object = prop.get(tag_name);
+                            if (null != object) {
+                                String name = object.toString();
+                                if (imageFile.getName().equals(name) || imageFile.getName().startsWith(name)) {
+                                    pack(rootImageFile, imageFile, prop, name);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    pack(rootImageFile, imageFile, properties, object.toString());
+                }
+            }
+        }
+    }
+
+    private void pack(File rootImageFile, File imageFile, Properties properties, String name) {
+        if (null != imageFile && null != properties && null != name) {
+            if (imageFile.getName().equals(name) || imageFile.getName().startsWith(name)) {
+                int x = -1;
+                int y = -1;
+                Object obj = properties.get(tag_bounds_x);
+                if (null != obj) {
+                    x = (int) obj;
+                }
+                obj = properties.get(tag_bounds_y);
+                if (null != obj) {
+                    y = (int) obj;
+                }
+                pack(rootImageFile, imageFile, x, y);
+            }
+        }
+    }
+
+    public void pack(File rootImageFile, File imageFile, int x, int y) {
+        BufferedImage image = pixelSheet.pack(read(rootImageFile), read(imageFile), x, y);
+//        System.out.println("pp502: x:" + x + "/y:" + y + "/img:" + (null == image));
+        String info = suffix_Pack + x + y;
+        pack(getPrefix(rootImageFile.getAbsolutePath()), image, null, info);
     }
 
     public void pack(File imageFile, File propFile, boolean isTrim) {
@@ -408,10 +496,8 @@ public class PixelPacker {
     }
 
     public void pack(File imageFile, Properties properties, boolean isTrim) {
-        if (null != properties) {
-            if (null == imageFile) {
-                return;
-            }
+        if (null != imageFile) {
+
             File dirFile;
             if (imageFile.isFile()) {
                 dirFile = imageFile.getParentFile();
@@ -419,15 +505,22 @@ public class PixelPacker {
                 dirFile = imageFile;
             }
             if (null != dirFile) {
-                String info = suffix_Pack + suffix_Properties + isTrim;
-                File[] array = sort(dirFile.listFiles(), properties);
-                BufferedImage image = pack(array, properties, isTrim);
-                pack(dirFile, image, null, info);
+                pack(dirFile.listFiles(), properties, isTrim);
+            }
+        }
+    }
+
+    public void pack(File[] array, Properties properties, boolean isTrim) {
+        if (null != array) {
+            String info = suffix_Pack + suffix_Properties + isTrim;
+            array = sort(array, properties);
+            BufferedImage image = packTool(array, properties, isTrim);
+            File file = array[0];
+            if (null != file) {
+                pack(file.getParentFile().getAbsolutePath(), image, null, info);
             }
         } else {
-            if (null != imageFile) {
-                packMaxSize(imageFile, isTrim);
-            }
+            packMaxSize(array, isTrim);
         }
     }
 
@@ -461,27 +554,27 @@ public class PixelPacker {
         return array;
     }
 
-    private BufferedImage pack(File[] array, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight, boolean isTrim) {
-        return pack(toList(array), x, y, width, height, lineSize, rowSize, lineWidth, rowHeight, isTrim);
+    private BufferedImage packTool(File[] array, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight, boolean isTrim) {
+        return packTool(toList(array), x, y, width, height, lineSize, rowSize, lineWidth, rowHeight, isTrim);
     }
 
-    private BufferedImage pack(File[] array, Properties properties, boolean isTrim) {
-        return pack(toList(array), properties, isTrim);
+    private BufferedImage packTool(File[] array, Properties properties, boolean isTrim) {
+        return packTool(toList(array), properties, isTrim);
     }
 
-    private BufferedImage pack(ArrayList<BufferedImage> arrayList, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight, boolean isTrim) {
-        return pack(toArray(arrayList), x, y, width, height, lineSize, rowSize, lineWidth, rowHeight, isTrim);
+    private BufferedImage packTool(ArrayList<BufferedImage> arrayList, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight, boolean isTrim) {
+        return packTool(toArray(arrayList), x, y, width, height, lineSize, rowSize, lineWidth, rowHeight, isTrim);
     }
 
-    private BufferedImage pack(ArrayList<BufferedImage> arrayList, Properties properties, boolean isTrim) {
-        return pack(toArray(arrayList), properties, isTrim);
+    private BufferedImage packTool(ArrayList<BufferedImage> arrayList, Properties properties, boolean isTrim) {
+        return packTool(toArray(arrayList), properties, isTrim);
     }
 
-    private BufferedImage pack(BufferedImage[] array, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight, boolean isTrim) {
+    private BufferedImage packTool(BufferedImage[] array, int x, int y, int width, int height, int lineSize, int rowSize, int lineWidth, int rowHeight, boolean isTrim) {
         return pixelSheet.pack(array, x, y, width, height, lineSize, rowSize, lineWidth, rowHeight, isTrim);
     }
 
-    private BufferedImage pack(BufferedImage[] array, Properties properties, boolean isTrim) {
+    private BufferedImage packTool(BufferedImage[] array, Properties properties, boolean isTrim) {
         return pixelSheet.pack(array, properties, isTrim);
     }
 
@@ -493,12 +586,28 @@ public class PixelPacker {
         pack(file, x, y, KeepSize, KeepSize, MaxSize, MaxSize, lineWidth, rowHeight, isTrim);
     }
 
+    public void packKeepSize(File[] array, boolean isTrim) {
+        packKeepSize(array, 0, 0, 0, 0, isTrim);
+    }
+
+    public void packKeepSize(File[] array, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {
+        pack(array, x, y, KeepSize, KeepSize, MaxSize, MaxSize, lineWidth, rowHeight, isTrim);
+    }
+
     public void packMaxSize(File file, boolean isTrim) {
         packMaxSize(file, 0, 0, 0, 0, isTrim);
     }
 
     public void packMaxSize(File file, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {
         pack(file, x, y, MaxSize, MaxSize, MaxSize, MaxSize, lineWidth, rowHeight, isTrim);
+    }
+
+    public void packMaxSize(File[] array, boolean isTrim) {
+        packMaxSize(array, 0, 0, 0, 0, isTrim);
+    }
+
+    public void packMaxSize(File[] array, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {
+        pack(array, x, y, MaxSize, MaxSize, MaxSize, MaxSize, lineWidth, rowHeight, isTrim);
     }
 
     public void packLineKeepSize(File file, boolean isTrim) {
@@ -509,12 +618,28 @@ public class PixelPacker {
         pack(file, x, y, KeepSize, KeepSize, MaxSize, 1, lineWidth, rowHeight, isTrim);
     }
 
+    public void packLineKeepSize(File[] array, boolean isTrim) {
+        packLineKeepSize(array, 0, 0, 0, 0, isTrim);
+    }
+
+    public void packLineKeepSize(File[] array, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {
+        pack(array, x, y, KeepSize, KeepSize, MaxSize, 1, lineWidth, rowHeight, isTrim);
+    }
+
     public void packLineMaxSize(File file, boolean isTrim) {
         packLineMaxSize(file, 0, 0, 0, 0, isTrim);
     }
 
     public void packLineMaxSize(File file, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {
         pack(file, x, y, MaxSize, MaxSize, MaxSize, 1, lineWidth, rowHeight, isTrim);
+    }
+
+    public void packLineMaxSize(File[] array, boolean isTrim) {
+        packLineMaxSize(array, 0, 0, 0, 0, isTrim);
+    }
+
+    public void packLineMaxSize(File[] array, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {
+        pack(array, x, y, MaxSize, MaxSize, MaxSize, 1, lineWidth, rowHeight, isTrim);
     }
 
     public void packRowKeepSize(File file, boolean isTrim) {
@@ -525,6 +650,14 @@ public class PixelPacker {
         pack(file, x, y, KeepSize, KeepSize, 1, MaxSize, lineWidth, rowHeight, isTrim);
     }
 
+    public void packRowKeepSize(File[] array, boolean isTrim) {
+        packRowKeepSize(array, 0, 0, 0, 0, isTrim);
+    }
+
+    public void packRowKeepSize(File[] array, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {
+        pack(array, x, y, KeepSize, KeepSize, 1, MaxSize, lineWidth, rowHeight, isTrim);
+    }
+
     public void packRowMaxSize(File file, boolean isTrim) {
         packRowMaxSize(file, 0, 0, 0, 0, isTrim);
     }
@@ -533,8 +666,20 @@ public class PixelPacker {
         pack(file, x, y, MaxSize, MaxSize, 1, MaxSize, lineWidth, rowHeight, isTrim);
     }
 
+    public void packRowMaxSize(File[] array, boolean isTrim) {
+        packRowMaxSize(array, 0, 0, 0, 0, isTrim);
+    }
+
+    public void packRowMaxSize(File[] array, int x, int y, int lineWidth, int rowHeight, boolean isTrim) {
+        pack(array, x, y, MaxSize, MaxSize, 1, MaxSize, lineWidth, rowHeight, isTrim);
+    }
+
     public void packPolygon(File file, boolean isTrim) {
-        packPolygonTool(file, isTrim, false);
+        packPolygon(file, isTrim, false);
+    }
+
+    public void packPolygon(File[] array, boolean isTrim) {
+        packPolygon(array, isTrim, false);
     }
 
     private BufferedImage packPolygon(BufferedImage[] array, boolean isTrim) {
@@ -542,10 +687,14 @@ public class PixelPacker {
     }
 
     public void packPolygonNon(File file, boolean isTrim) {
-        packPolygonTool(file, isTrim, true);
+        packPolygon(file, isTrim, true);
     }
 
-    private void packPolygonTool(File file, boolean isTrim, boolean isAlpha) {
+    public void packPolygonNon(File[] array, boolean isTrim) {
+        packPolygon(array, isTrim, true);
+    }
+
+    private void packPolygon(File file, boolean isTrim, boolean isAlpha) {
         if (null != file) {
             File dirFile;
             if (file.isFile()) {
@@ -555,16 +704,25 @@ public class PixelPacker {
             }
             if (null != dirFile) {
                 File[] array = dirFile.listFiles();
-                BufferedImage image = packPolygonTool(array, isTrim, isAlpha);
-                String info = suffix_Pack;
-                if (isAlpha) {
-                    info += suffix_Polygon_Non + isTrim;
-                } else {
-                    info += suffix_Polygon + isTrim;
-                }
-                Properties properties = pixelSheet.getPackProperties();
-                updateProperties(properties, array);
-                pack(dirFile, image, properties, info);
+                packPolygon(array, isTrim, isAlpha);
+            }
+        }
+    }
+
+    private void packPolygon(File[] array, boolean isTrim, boolean isAlpha) {
+        if (null != array) {
+            BufferedImage image = packPolygonTool(array, isTrim, isAlpha);
+            String info = suffix_Pack;
+            if (isAlpha) {
+                info += suffix_Polygon_Non + isTrim;
+            } else {
+                info += suffix_Polygon + isTrim;
+            }
+            Properties properties = pixelSheet.getPackProperties();
+            updateProperties(properties, array);
+            File file = array[0];
+            if (null != file) {
+                pack(file.getParentFile().getAbsolutePath(), image, properties, info);
             }
         }
     }
@@ -587,7 +745,12 @@ public class PixelPacker {
 
     public void packShape(File file, boolean isTrim) {
         pixelSheet.setCheckStyle(PixelSheet.Area_Style_Shape);
-        packPolygonTool(file, isTrim, true);
+        packPolygon(file, isTrim, true);
+    }
+
+    public void packShape(File[] array, boolean isTrim) {
+        pixelSheet.setCheckStyle(PixelSheet.Area_Style_Shape);
+        packPolygon(array, isTrim, true);
     }
 
     public void unpack(File file, int x, int y, int width, int height, boolean isTrim) {
