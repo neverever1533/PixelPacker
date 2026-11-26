@@ -34,7 +34,7 @@ public class PixelSheet {
     public static int Pack_Level_Normal = 0;
     public static int Pack_Level_Extreme = 1;
 
-//    private boolean is_pack_vertical = Is_Pack_Vertical;
+    //    private boolean is_pack_vertical = Is_Pack_Vertical;
     private boolean is_pack_vertical = Is_Pack_Horizontal;
     private boolean is_direction_right = Is_Direction_Right;
     private boolean is_direction_down = Is_Direction_Down;
@@ -460,23 +460,84 @@ public class PixelSheet {
         }
     }
 
-    public void drawImage(BufferedImage root, BufferedImage image, int x, int y) {
+    public BufferedImage drawImage(BufferedImage root, BufferedImage image, int x, int y) {
         if (null != root && null != image) {
             Graphics2D graphics2D = root.createGraphics();
             drawImage(graphics2D, image, x, y, root.getWidth(), root.getHeight());
             graphics2D.dispose();
+            return root;
+        }
+        return null;
+    }
+
+    public BufferedImage pack(BufferedImage root, BufferedImage[] array, Properties properties) {
+        if (null != root && null != array && null != properties) {
+            for (int i = 0; i < array.length; i++) {
+                BufferedImage image = array[i];
+                Object object = properties.get(i);
+                if (null == object) {
+                    object = properties.get(String.valueOf(i));
+                }
+                int x = -1;
+                int y = -1;
+                Object obj;
+                if (object instanceof Properties) {
+                    Properties prop = (Properties) object;
+                    obj = prop.get(tag_bounds_x);
+                    if (null != obj) {
+                        x = (int) obj;
+                    }
+                    obj = prop.get(tag_bounds_y);
+                    if (null != obj) {
+                        y = (int) obj;
+                    }
+                } else {
+                    obj = properties.get(tag_bounds_x);
+                    if (null != obj) {
+                        x = (int) obj;
+                    }
+                    obj = properties.get(tag_bounds_y);
+                    if (null != obj) {
+                        y = (int) obj;
+                    }
+                }
+//                System.out.println("ps504: x:" + x + "/y:" + y);
+                root = pack(root, image, x, y);
+            }
+            return root;
+        }
+        return null;
+    }
+
+    public BufferedImage pack(BufferedImage root, BufferedImage image, int x, int y) {
+        if (null != root && null != image && x >= 0 && y >= 0) {
+            int width = root.getWidth();
+            int height = root.getHeight();
+            if (image.getWidth() <= width && x < width && image.getHeight() <= height && y < height) {
+                Graphics2D graphics2D = root.createGraphics();
+                drawImage(graphics2D, image, x, y);
+                graphics2D.dispose();
+                return root;
+            }
+        }
+        return null;
+    }
+
+    private void drawImage(Graphics2D graphics2D, BufferedImage image, int x, int y) {
+        if (null != graphics2D && null != image) {
+            graphics2D.drawImage(image, x, y, null);
         }
     }
 
     private void drawImage(Graphics2D graphics2D, BufferedImage image, int x, int y, int width, int height) {
-        if (null != graphics2D && null != image) {
+        if (null != image) {
             if (width > 0) {
                 x += (width - image.getWidth()) / 2;
             }
             if (height > 0) {
                 y += (height - image.getHeight()) / 2;
             }
-            graphics2D.drawImage(image, x, y, null);
+            drawImage(graphics2D, image, x, y);
         }
     }
 
@@ -885,6 +946,7 @@ public class PixelSheet {
 
     private BufferedImage unpack(BufferedImage root, Properties properties, int index, boolean isTrim, boolean isAlpha) {
         if (null != root && null != properties) {
+//            System.out.println("ps888:" + properties);
             Rectangle r = getBounds(properties, index);
             if (null != r) {
                 if (isAlpha) {
@@ -899,6 +961,7 @@ public class PixelSheet {
 
     private BufferedImage unpack(BufferedImage root, Properties properties, int index, boolean isTrim) {
         if (null != root && null != properties) {
+//            System.out.println("ps902:" + properties);
             Rectangle rectangle = getBounds(properties, index);
             if (null != rectangle) {
                 return unpack(root, rectangle.x, rectangle.y, rectangle.width, rectangle.height, isTrim);
