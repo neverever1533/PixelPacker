@@ -336,7 +336,7 @@ public class PixelSheet {
                     for (int i = 0; i < lineSize; i++) {
                         for (int j = 0; j < rowSize; j++) {
                             if (index < array.length) {
-                                drawImage(graphics2D, array[index], width, height, i, j, lineWidth, rowHeight, w_max, h_max, properties);
+                                drawImage(graphics2D, array, index, width, height, i, j, lineWidth, rowHeight, w_max, h_max, properties);
                                 System.out.println("pack:" + ((double) (index + 1) / array.length) * 100 + "%");
                             } else {
                                 break;
@@ -348,7 +348,7 @@ public class PixelSheet {
                     for (int i = 0; i < lineSize; i++) {
                         for (int j = rowSize - 1; j >= 0; j--) {
                             if (index < array.length) {
-                                drawImage(graphics2D, array[index], width, height, i, j, lineWidth, rowHeight, w_max, h_max, properties);
+                                drawImage(graphics2D, array, index, width, height, i, j, lineWidth, rowHeight, w_max, h_max, properties);
                                 System.out.println("pack:" + ((double) (index + 1) / array.length) * 100 + "%");
                             } else {
                                 break;
@@ -360,7 +360,7 @@ public class PixelSheet {
                     for (int i = lineSize - 1; i >= 0; i--) {
                         for (int j = 0; j < rowSize; j++) {
                             if (index < array.length) {
-                                drawImage(graphics2D, array[index], width, height, i, j, lineWidth, rowHeight, w_max, h_max, properties);
+                                drawImage(graphics2D, array, index, width, height, i, j, lineWidth, rowHeight, w_max, h_max, properties);
                                 System.out.println("pack:" + ((double) (index + 1) / array.length) * 100 + "%");
                             } else {
                                 break;
@@ -372,7 +372,7 @@ public class PixelSheet {
                     for (int i = lineSize - 1; i >= 0; i--) {
                         for (int j = rowSize - 1; j >= 0; j--) {
                             if (index < array.length) {
-                                drawImage(graphics2D, array[index], width, height, i, j, lineWidth, rowHeight, w_max, h_max, properties);
+                                drawImage(graphics2D, array, index, width, height, i, j, lineWidth, rowHeight, w_max, h_max, properties);
                                 System.out.println("pack:" + ((double) (index + 1) / array.length) * 100 + "%");
                             } else {
                                 break;
@@ -386,7 +386,7 @@ public class PixelSheet {
                     for (int j = 0; j < rowSize; j++) {
                         for (int i = 0; i < lineSize; i++) {
                             if (index < array.length) {
-                                drawImage(graphics2D, array[index], width, height, i, j, lineWidth, rowHeight, w_max, h_max, properties);
+                                drawImage(graphics2D, array, index, width, height, i, j, lineWidth, rowHeight, w_max, h_max, properties);
                                 System.out.println("pack:" + ((double) (index + 1) / array.length) * 100 + "%");
                             } else {
                                 break;
@@ -398,7 +398,7 @@ public class PixelSheet {
                     for (int j = rowSize - 1; j >= 0; j--) {
                         for (int i = 0; i < lineSize; i++) {
                             if (index < array.length) {
-                                drawImage(graphics2D, array[index], width, height, i, j, lineWidth, rowHeight, w_max, h_max, properties);
+                                drawImage(graphics2D, array, index, width, height, i, j, lineWidth, rowHeight, w_max, h_max, properties);
                                 System.out.println("pack:" + ((double) (index + 1) / array.length) * 100 + "%");
                             } else {
                                 break;
@@ -410,7 +410,7 @@ public class PixelSheet {
                     for (int j = 0; j < rowSize; j++) {
                         for (int i = lineSize - 1; i >= 0; i--) {
                             if (index < array.length) {
-                                drawImage(graphics2D, array[index], width, height, i, j, lineWidth, rowHeight, w_max, h_max, properties);
+                                drawImage(graphics2D, array, index, width, height, i, j, lineWidth, rowHeight, w_max, h_max, properties);
                                 System.out.println("pack:" + ((double) (index + 1) / array.length) * 100 + "%");
                             } else {
                                 break;
@@ -422,7 +422,7 @@ public class PixelSheet {
                     for (int j = rowSize - 1; j >= 0; j--) {
                         for (int i = lineSize - 1; i >= 0; i--) {
                             if (index < array.length) {
-                                drawImage(graphics2D, array[index], width, height, i, j, lineWidth, rowHeight, w_max, h_max, properties);
+                                drawImage(graphics2D, array, index, width, height, i, j, lineWidth, rowHeight, w_max, h_max, properties);
                                 System.out.println("pack:" + ((double) (index + 1) / array.length) * 100 + "%");
                             } else {
                                 break;
@@ -437,8 +437,9 @@ public class PixelSheet {
         }
     }
 
-    private void drawImage(Graphics2D graphics2D, BufferedImage image, int width, int height, int i, int j, int lineWidth, int rowHeight, int maxWidth, int maxHeight, Properties properties) {
-        if (null != graphics2D && null != image && null != properties) {
+    private void drawImage(Graphics2D graphics2D, BufferedImage[] array, int index, int width, int height, int i, int j, int lineWidth, int rowHeight, int maxWidth, int maxHeight, Properties properties) {
+        if (null != graphics2D && null != array && null != properties) {
+            BufferedImage image = array[index];
             int w;
             int h;
             int x = i * (maxWidth + lineWidth);
@@ -456,7 +457,7 @@ public class PixelSheet {
 //            System.out.println("x/y:" + x + "/" + y);
             Properties prop = new Properties();
             drawImage(graphics2D, image, x, y, w, h, prop);
-            properties.put(i, prop);
+            properties.put(index, prop);
         }
     }
 
@@ -472,39 +473,8 @@ public class PixelSheet {
 
     public BufferedImage pack(BufferedImage root, BufferedImage[] array, Properties properties) {
         if (null != root && null != array && null != properties) {
-            for (int i = 0; i < array.length; i++) {
-                BufferedImage image = array[i];
-                Object object = properties.get(i);
-                if (null == object) {
-                    object = properties.get(String.valueOf(i));
-                }
-                int x = -1;
-                int y = -1;
-                Object obj;
-                if (object instanceof Properties) {
-                    Properties prop = (Properties) object;
-                    obj = prop.get(tag_bounds_x);
-                    if (null != obj) {
-                        x = (int) obj;
-                    }
-                    obj = prop.get(tag_bounds_y);
-                    if (null != obj) {
-                        y = (int) obj;
-                    }
-                } else {
-                    obj = properties.get(tag_bounds_x);
-                    if (null != obj) {
-                        x = (int) obj;
-                    }
-                    obj = properties.get(tag_bounds_y);
-                    if (null != obj) {
-                        y = (int) obj;
-                    }
-                }
-//                System.out.println("ps504: x:" + x + "/y:" + y);
-                root = pack(root, image, x, y);
-            }
-            return root;
+            BufferedImage image = pack(array, properties, false);
+            return pack(root, image, 0, 0);
         }
         return null;
     }
@@ -581,7 +551,11 @@ public class PixelSheet {
             updateImage(array, isTrim);
             Dimension canvas = getPackSize();
             if (null == canvas) {
-                canvas = getSize(array);
+                if (null != properties && properties.size() > 1) {
+                    canvas = getSize(properties);
+                } else {
+                    canvas = getSize(array);
+                }
             }
             if (null != canvas) {
                 BufferedImage root = new BufferedImage(canvas.width, canvas.height, BufferedImage.TYPE_INT_ARGB);
@@ -626,6 +600,54 @@ public class PixelSheet {
                     graphics2D.dispose();
                     return getSubImage(root, w_min, h_min);
                 }
+            }
+        }
+        return null;
+    }
+
+    private Dimension getSize(Properties properties) {
+        if (null != properties) {
+            int width = 0;
+            int height = 0;
+            int x = 0;
+            int y = 0;
+            int w = 0;
+            int h = 0;
+            int w_;
+            int h_;
+            Collection<Object> values = properties.values();
+            for (Iterator<Object> iterator = values.iterator(); iterator.hasNext(); ) {
+                Object object = iterator.next();
+                if (object instanceof Properties) {
+                    Properties prop = (Properties) object;
+                    Object obj = prop.get(tag_bounds_x);
+                    if (null != obj) {
+                        x = (int) obj;
+                    }
+                    obj = prop.get(tag_bounds_y);
+                    if (null != obj) {
+                        y = (int) obj;
+                    }
+                    obj = prop.get(tag_bounds_width);
+                    if (null != obj) {
+                        w = (int) obj;
+                    }
+                    obj = prop.get(tag_bounds_height);
+                    if (null != obj) {
+                        h = (int) obj;
+                    }
+                    w_ = x + w;
+                    if (width < w_) {
+                        width = w_;
+                    }
+                    h_ = y + h;
+                    if (height < h_) {
+                        height = h_;
+                    }
+                }
+            }
+            if (width > 0 && height > 0) {
+                return new Dimension(width, height);
             }
         }
         return null;
